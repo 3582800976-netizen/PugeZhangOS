@@ -7,6 +7,14 @@
 void main();
 void timerinit();
 
+// per-hart boot trace state. START indicates this hart has reached start().
+// MAIN is defined for the later main() trace point, but not used here yet.
+enum {
+  BOOT_TRACE_START = 1,
+  BOOT_TRACE_MAIN  = 2,
+};
+volatile int boot_trace_state[NCPU];
+
 // entry.S needs one stack per CPU.
 __attribute__ ((aligned (16))) char stack0[4096 * NCPU];
 
@@ -43,6 +51,7 @@ start()
 
   // keep each CPU's hartid in its tp register, for cpuid().
   int id = r_mhartid();
+  boot_trace_state[id] = BOOT_TRACE_START;
   w_tp(id);
 
   // switch to supervisor mode and jump to main().

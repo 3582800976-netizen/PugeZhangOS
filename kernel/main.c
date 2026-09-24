@@ -4,16 +4,25 @@
 #include "riscv.h"
 #include "defs.h"
 
+extern volatile int boot_trace_state[];
+
 volatile static int started = 0;
 
 // start() jumps here in supervisor mode on all CPUs.
 void
 main()
 {
+  int id = cpuid();
+  boot_trace_state[id] = 2; // BOOT_TRACE_MAIN is defined in start.c.
+
   if(cpuid() == 0){
     consoleinit();
     printfinit();
     printf("\n");
+    printf("boot trace snapshot: ");
+    for(int i = 0; i < NCPU; i++)
+      printf("hart%d=%d ", i, boot_trace_state[i]);
+    printf("(2 = MAIN)\n");
     printf("xv6 kernel is booting\n");
     printf("\n");
     kinit();         // physical page allocator
@@ -35,7 +44,6 @@ main()
     while(started == 0)
       ;
     __sync_synchronize();
-    printf("hart %d starting\n", cpuid());
     kvminithart();    // turn on paging
     trapinithart();   // install kernel trap vector
     plicinithart();   // ask PLIC for device interrupts
