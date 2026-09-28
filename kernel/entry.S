@@ -15,6 +15,8 @@ _entry:
         addi a1, a1, 1
         mul a0, a0, a1
         add sp, sp, a0
+	# record that this hart reached the assembly entry point.
+        call boot_trace_entry
 	# jump to start() in start.c
         call start
 spin:
