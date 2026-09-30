@@ -15,6 +15,7 @@ enum {
   BOOT_TRACE_RELEASED          = 1U << 7,
   BOOT_TRACE_LOCAL_INIT_DONE   = 1U << 8,
   BOOT_TRACE_SCHEDULER         = 1U << 9,
+  BOOT_TRACE_STARTED_PUBLISHED = 1U << 10,
 };
 
 #define BOOT_TRACE_OUTPUT_SIZE 256
@@ -89,6 +90,37 @@ boot_trace_print(int id)
   printf("[hart %d] %s\n", id, trace);
 }
 
+static void
+hart_trace_print(int id)
+{
+  static const struct {
+    uint event;
+    const char *name;
+  } events[] = {
+    { BOOT_TRACE_GLOBAL_INIT_BEGIN, "GLOBAL_INIT_BEGIN" },
+    { BOOT_TRACE_LOCAL_INIT_DONE,   "LOCAL_INIT_DONE" },
+    { BOOT_TRACE_GLOBAL_INIT_DONE,  "GLOBAL_INIT_DONE" },
+    { BOOT_TRACE_WAIT_STARTED,      "WAIT_STARTED" },
+    { BOOT_TRACE_STARTED_PUBLISHED, "STARTED_PUBLISHED" },
+    { BOOT_TRACE_RELEASED,          "RELEASED" },
+    { BOOT_TRACE_SCHEDULER,         "SCHEDULER" },
+  };
+  char trace[BOOT_TRACE_OUTPUT_SIZE];
+  int length = 0;
+  uint state = boot_trace_state[id];
+
+  // This is a set of cooperation milestones, not an exact time sequence.
+  trace[0] = '\0';
+  for(uint i = 0; i < sizeof(events) / sizeof(events[0]); i++){
+    if(state & events[i].event){
+      if(length > 0)
+        boot_trace_append(trace, &length, ", ");
+      boot_trace_append(trace, &length, events[i].name);
+    }
+  }
+  printf("[hart %d] Hart Trace events: {%s}\n", id, trace);
+}
+
 // start() jumps here in supervisor mode on all CPUs.
 void
 main()
@@ -120,6 +152,7 @@ main()
     boot_trace_mark(id, BOOT_TRACE_GLOBAL_INIT_DONE);
     __sync_synchronize();
     started = 1;
+    boot_trace_mark(id, BOOT_TRACE_STARTED_PUBLISHED);
   } else {
     boot_trace_mark(id, BOOT_TRACE_WAIT_STARTED);
     while(started == 0)
@@ -134,5 +167,11 @@ main()
 
   boot_trace_mark(id, BOOT_TRACE_SCHEDULER);
   boot_trace_print(id);
+  hart_trace_print(id);
+
+  // Locked-version concurrent UART output experiment: each hart that
+  // reached main() repeatedly prints its hart id and loop index.
+  for (int i = 0; i < 20; i++)
+    printf("H%d-%d\n", id, i);
   scheduler();        
 }
