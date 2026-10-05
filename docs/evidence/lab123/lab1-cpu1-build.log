@@ -1,0 +1,13 @@
+$ make --no-print-directory LAB=1 CPUS=1
+
+mkdir -p build/lab1-cpu1/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=1 -DCPUS=1 -c boot/trap.S -o build/lab1-cpu1/boot/trap.o
+mkdir -p build/lab1-cpu1/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=1 -DCPUS=1 -c boot/start.c -o build/lab1-cpu1/boot/start.o
+mkdir -p build/lab1-cpu1/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=1 -DCPUS=1 -c kernel/main.c -o build/lab1-cpu1/kernel/main.o
+mkdir -p build/lab1-cpu1/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=1 -DCPUS=1 -c kernel/trap.c -o build/lab1-cpu1/kernel/trap.o
+mkdir -p build/lab1-cpu1/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=1 -DCPUS=1 -c lib/sbi.c -o build/lab1-cpu1/lib/sbi.o
+riscv64-linux-gnu-ld -T linker.ld --defsym=KERNEL_BASE=0x80000000 -o build/lab1-cpu1/kernel.elf build/lab1-cpu1/boot/entry.o build/lab1-cpu1/boot/trap.o build/lab1-cpu1/boot/start.o build/lab1-cpu1/kernel/main.o build/lab1-cpu1/kernel/spinlock.o build/lab1-cpu1/kernel/trap.o build/lab1-cpu1/drivers/uart.o build/lab1-cpu1/drivers/plic.o build/lab1-cpu1/lib/console.o build/lab1-cpu1/lib/memory.o build/lab1-cpu1/lib/sbi.o

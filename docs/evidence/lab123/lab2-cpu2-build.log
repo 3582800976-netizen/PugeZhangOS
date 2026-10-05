@@ -1,0 +1,29 @@
+$ make --no-print-directory LAB=2 CPUS=2
+
+mkdir -p build/lab2-cpu2/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c boot/entry.S -o build/lab2-cpu2/boot/entry.o
+mkdir -p build/lab2-cpu2/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c boot/trap.S -o build/lab2-cpu2/boot/trap.o
+mkdir -p build/lab2-cpu2/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c boot/start.c -o build/lab2-cpu2/boot/start.o
+mkdir -p build/lab2-cpu2/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c kernel/main.c -o build/lab2-cpu2/kernel/main.o
+mkdir -p build/lab2-cpu2/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c kernel/spinlock.c -o build/lab2-cpu2/kernel/spinlock.o
+mkdir -p build/lab2-cpu2/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c kernel/trap.c -o build/lab2-cpu2/kernel/trap.o
+mkdir -p build/lab2-cpu2/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c drivers/uart.c -o build/lab2-cpu2/drivers/uart.o
+mkdir -p build/lab2-cpu2/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c drivers/plic.c -o build/lab2-cpu2/drivers/plic.o
+mkdir -p build/lab2-cpu2/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c lib/console.c -o build/lab2-cpu2/lib/console.o
+mkdir -p build/lab2-cpu2/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c lib/memory.c -o build/lab2-cpu2/lib/memory.o
+mkdir -p build/lab2-cpu2/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c lib/sbi.c -o build/lab2-cpu2/lib/sbi.o
+mkdir -p build/lab2-cpu2/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c kernel/page.c -o build/lab2-cpu2/kernel/page.o
+mkdir -p build/lab2-cpu2/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=2 -DCPUS=2 -c kernel/vm.c -o build/lab2-cpu2/kernel/vm.o
+riscv64-linux-gnu-ld -T linker.ld --defsym=KERNEL_BASE=0x80200000 -o build/lab2-cpu2/kernel.elf build/lab2-cpu2/boot/entry.o build/lab2-cpu2/boot/trap.o build/lab2-cpu2/boot/start.o build/lab2-cpu2/kernel/main.o build/lab2-cpu2/kernel/spinlock.o build/lab2-cpu2/kernel/trap.o build/lab2-cpu2/drivers/uart.o build/lab2-cpu2/drivers/plic.o build/lab2-cpu2/lib/console.o build/lab2-cpu2/lib/memory.o build/lab2-cpu2/lib/sbi.o build/lab2-cpu2/kernel/page.o build/lab2-cpu2/kernel/vm.o

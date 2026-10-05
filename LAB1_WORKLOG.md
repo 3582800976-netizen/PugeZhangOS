@@ -1,5 +1,9 @@
 # Lab-1 Work Log
 
+> Historical record: the entries below describe the earlier xv6-based prototype.
+> For the independent Lab 1–3 kernel implemented on 2026-10-05, see
+> [the current design](docs/LAB123_DESIGN.md) and [runtime evidence](docs/evidence/lab123/summary.txt).
+
 This log records the Lab-1 startup-chain work and decisions made so far. It
 distinguishes repository changes and command-based verification from results
 reported by the user.

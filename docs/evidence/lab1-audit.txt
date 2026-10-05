@@ -1,0 +1,27 @@
+PugeZhang current independent kernel audit
+Read-only source review; only copied code and artifacts in /tmp were written.
+Copied source from /home/zpg/Work/PugeZhang, excluding .git and build artifacts.
+Clean build command: make
+Result: all 5 source objects built; kernel.elf linked; exit 0.
+Host toolchain: riscv64-linux-gnu-gcc / riscv64-linux-gnu-ld.
+Runtime emulator: /usr/local/bin/qemu-system-riscv64, version 5.1.0.
+Runtime commands:
+timeout 3s qemu-system-riscv64 -machine virt -bios none -kernel kernel.elf -m 128M -smp 1 -nographic
+timeout 3s qemu-system-riscv64 -machine virt -bios none -kernel kernel.elf -m 128M -smp 3 -nographic
+Both printed PugeZhangOS startup heading, boot trace, boot trace done.
+-smp 1: hart 0 = 0x7; harts 1 through 7 = 0x0.
+-smp 3: harts 0,1,2 = 0x7; harts 3 through 7 = 0x0.
+Both exited 124 only because timeout intentionally terminated idle guest.
+
+Confirmed formatter defects using the unchanged copied lib/console.c and host stub UART:
+Build: gcc -Iinclude -fsanitize=address,undefined -fno-sanitize-recover=all -g lib/console.c console_edges.c -o console_edges
+Input INT_MIN with %d: UBSan reports negation of -2147483648 cannot be represented in int at lib/console.c:70.
+Input a malloc'd two-byte format string {'%',0}: ASan reports heap-buffer-overflow READ at lib/console.c:57.
+
+Static limitations (not failure claims from these runtime runs):
+kernel/main.c:34 reads other harts' boot_stage without waiting on ready state or acquire/release publication.
+boot/entry.S:18 uses unchecked mhartid for array and stack offsets; MAX_HARTS duplicated in asm and platform.h.
+boot/start.c does not configure PMP. QEMU 5.1.0 source target/riscv/pmp.c:232 allows access when zero rules are configured; current runtime success depends on this emulator behavior.
+No trap vectors/delegation, allocator, VM, scheduler, user mode, disk or filesystem currently implemented.
+No header dependency generation and qemu hart count hardcoded as -smp 3 in Makefile.
+Git index contains 77 staged deletions of old xv6 tree; new independent kernel source remains untracked.

@@ -1,0 +1,6 @@
+Agent验证：独立临时源码副本，仅把kernel_main改为调用uart_putc('A')后等待；单核QEMU。
+编译退出码：0
+串口原始输出：b'A'
+终止信息：qemu-system-riscv64: terminating on signal 15 from pid 3 (python3)
+
+临时实验目录：/tmp/lab1-uart-char-_mibl1af

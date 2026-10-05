@@ -1,0 +1,6 @@
+Agent验证：现有console_printf的%u调用print_uint(...,10)，临时副本单核运行。
+输入：0u, 7u, 47u, 123u
+编译退出码：0
+串口输出：b'0 7 47 123\n'
+终止信息：qemu-system-riscv64: terminating on signal 15 from pid 8 (python3)
+实验目录：/tmp/lab1-decimal-0hhuy3rf

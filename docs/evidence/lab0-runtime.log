@@ -1,0 +1,31 @@
+
+xv6 kernel is booting
+
+hart 2 starting
+hart 1 starting
+init: starting sh
+$ echo LAB0_OK
+ls
+LAB0_OK
+$ .              1 1 1024
+..             1 1 1024
+README         2 2 2059
+xargstest.sh   2 3 93
+cat            2 4 21120
+echo           2 5 20056
+forktest       2 6 12112
+grep           2 7 23616
+init           2 8 20928
+kill           2 9 19944
+ln             2 10 19856
+ls             2 11 23320
+mkdir          2 12 20040
+rm             2 13 20032
+sh             2 14 36040
+stressfs       2 15 21040
+usertests      2 16 129368
+grind          2 17 33920
+wc             2 18 21800
+zombie         2 19 19464
+console        3 20 0
+$ 

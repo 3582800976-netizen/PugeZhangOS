@@ -8,3 +8,7 @@ kernel/kernel
 mkfs/mkfs
 user/initcode
 user/initcode.out
+build/
+kernel.elf
+shell/shell
+__pycache__/

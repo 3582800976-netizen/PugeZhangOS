@@ -1,0 +1,26 @@
+Agent验证：单核，mret前及kernel_main入口断点。
+0x0000000000001000 in ?? ()
+Hardware assisted breakpoint 1 at 0x80000084: file boot/start.c, line 38.
+
+Breakpoint 1, machine_init (hartid=0) at boot/start.c:38
+38	    asm volatile("mret");
+BEFORE_MRET
+pc             0x80000084	0x80000084 <machine_init+70>
+sp             0x80009000	0x80009000 <boot_stage>
+tp             0x0	0x0
+mepc           0x8000008a	2147483786
+mstatus        0x800	SD:0 VM:00 MXR:0 PUM:0 MPRV:0 XS:0 FS:0 MPP:1 HPP:0 SPP:0 MPIE:0 HPIE:0 SPIE:0 UPIE:0 MIE:0 HIE:0 SIE:0 UIE:0
+$1 = 0x1
+$2 = 3
+Hardware assisted breakpoint 2 at 0x8000008a: file include/riscv.h, line 55.
+
+Breakpoint 2, kernel_main () at include/riscv.h:55
+55	    asm volatile("mv %0, tp" : "=r"(x));
+AFTER_MRET
+pc             0x8000008a	0x8000008a <kernel_main>
+sp             0x80009000	0x80009000 <boot_stage>
+tp             0x0	0x0
+mepc           0x8000008a	2147483786
+mstatus        0x80	SD:0 VM:00 MXR:0 PUM:0 MPRV:0 XS:0 FS:0 MPP:0 HPP:0 SPP:0 MPIE:1 HPIE:0 SPIE:0 UPIE:0 MIE:0 HIE:0 SIE:0 UIE:0
+$3 = 1
+[Inferior 1 (process 1) detached]

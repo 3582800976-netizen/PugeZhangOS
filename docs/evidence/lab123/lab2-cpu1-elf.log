@@ -1,0 +1,145 @@
+$ riscv64-linux-gnu-readelf -h /home/zpg/Work/PugeZhang/build/lab2-cpu1/kernel.elf
+
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           RISC-V
+  Version:                           0x1
+  Entry point address:               0x80200000
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          112640 (bytes into file)
+  Flags:                             0x1, RVC, soft-float ABI
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         4
+  Size of section headers:           64 (bytes)
+  Number of section headers:         17
+  Section header string table index: 16
+
+$ riscv64-linux-gnu-nm -n /home/zpg/Work/PugeZhang/build/lab2-cpu1/kernel.elf
+
+0000000080200000 A KERNEL_BASE
+0000000080200000 T _boot
+0000000080200000 T _text_start
+0000000080200088 T kernel_vector
+0000000080200134 T trap_register_probe
+0000000080200178 T trap_breakpoint_site
+000000008020020c T trap_load_fault_site
+000000008020020c T trap_load_probe
+0000000080200214 T trap_load_fault_resume
+0000000080200218 T trap_store_probe
+000000008020021c T trap_store_fault_site
+0000000080200224 T trap_store_fault_resume
+0000000080200228 T boot_start
+000000008020026e t show_memory
+00000000802002dc t show_boot
+0000000080200318 t run_tests
+00000000802003a4 t show_mapping
+000000008020046c t wait_count.constprop.0
+00000000802004aa T boot_trace_mark
+00000000802004be T kernel_main
+0000000080200ce6 T irq_push
+0000000080200d0e T irq_pop
+0000000080200d48 T spin_init
+0000000080200d4e T spin_acquire
+0000000080200d86 T spin_release
+0000000080200dc8 T trap_test_load_fault
+0000000080200e30 T trap_test_store_fault
+0000000080200e98 T trap_init_hart
+0000000080200eb4 T trap_enable
+0000000080200eb6 T trap_ticks
+0000000080200ed4 T trap_uart_interrupts
+0000000080200ee0 T trap_breakpoint_test
+0000000080200f4a T trap_handle
+00000000802010f0 T trap_selftest
+000000008020115a T uart_init
+0000000080201178 T uart_putc
+000000008020119e T uart_puts
+00000000802011ce T uart_enable_rx_irq
+00000000802011da T uart_intr
+000000008020124c T uart_getc
+0000000080201266 T uart_rx_bytes
+0000000080201272 T uart_rx_dropped
+000000008020127e T plic_init
+000000008020128c T plic_init_hart
+00000000802012b4 T plic_claim
+00000000802012ca T plic_complete
+00000000802012e2 t emit_unsigned
+0000000080201388 t format.constprop.0
+000000008020185a T console_init
+000000008020187a T console_putc
+00000000802018b2 T console_printf
+0000000080201910 T console_snprintf
+0000000080201940 T console_selftest
+0000000080201aea T panic
+0000000080201b24 T memset
+0000000080201b3c T memcpy
+0000000080201b54 T strcmp
+0000000080201b8c T strlen
+0000000080201ba6 T sbi_probe_extension
+0000000080201bbe T sbi_start_hart
+0000000080201bd8 T sbi_boot_secondaries
+0000000080201c38 T sbi_set_timer
+0000000080201c76 T sbi_shutdown
+0000000080201c98 t prepare_pool
+0000000080201d36 t page_alloc.part.0
+0000000080201dda T page_init
+0000000080201e94 T page_alloc
+0000000080201ea6 T page_free
+0000000080201fcc T page_get_stats
+0000000080202060 T page_selftest
+000000008020251e t map_page
+000000008020261e T vm_init
+00000000802027b4 T vm_enable
+00000000802027d2 T vm_root_address
+00000000802027dc T vm_diag_frame_address
+00000000802027e6 T vm_lookup
+000000008020290a T vm_selftest
+0000000080204000 R _rodata_start
+0000000080204000 R _text_end
+0000000080205000 D _data_start
+0000000080205000 D _rodata_end
+0000000080205000 d boot_claim
+0000000080205004 d boot_ready
+0000000080205008 B _bss_start
+0000000080205008 D _data_end
+0000000080206000 B _boot_stack_base
+000000008020e000 B _boot_stack_top
+000000008020e000 b records
+000000008020e080 b baseline_free
+000000008020e090 b held_kernel
+000000008020e0d0 b held_user
+000000008020e110 b hart_page_failures
+000000008020e130 b allow_release
+000000008020e134 b held_count
+000000008020e138 b boot_failures
+000000008020e140 b leader
+000000008020e148 b ready_count
+000000008020e14c b global_ready
+000000008020e150 b irq_depth
+000000008020e170 b irq_was_enabled
+000000008020e190 b expected_fault_address
+000000008020e1d0 b fault_seen
+000000008020e1f0 b expected_fault_cause
+000000008020e230 b ticks
+000000008020e270 b breakpoint_count
+000000008020e2b0 b breakpoint_expected
+000000008020e2d0 b uart_interrupts
+000000008020e2d8 b rx_dropped
+000000008020e2e0 b rx_bytes
+000000008020e2e8 b write_position
+000000008020e2ec b read_position
+000000008020e2f0 b output_lock
+000000008020e2f8 b pools
+000000008020e388 b owned
+000000008020f388 b reserved_end
+000000008020f390 b reserved_begin
+000000008020f398 b diag_frame
+000000008020f3a0 b root
+000000008020f3a8 B _bss_end
+0000000080210000 B _kernel_end

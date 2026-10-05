@@ -1,220 +1,139 @@
-#include "types.h"
-#include "param.h"
-#include "memlayout.h"
+/* No printing in normal interrupts: record facts, leave work to main loop. */
+#include "platform.h"
 #include "riscv.h"
-#include "spinlock.h"
-#include "proc.h"
-#include "defs.h"
+#include "trap.h"
+#include "sbi.h"
+#include "plic.h"
+#include "console.h"
+#include "uart.h"
+void panic(const char *message) __attribute__((noreturn));
+void uart_intr(void);
+extern void kernel_vector(void);
+extern char trap_breakpoint_site[];
+extern int trap_register_probe(void);
+static uint64 ticks[MAX_HARTS];
+static uint64 uart_interrupts;
+static uint64 breakpoint_count[MAX_HARTS];
+static int breakpoint_expected[MAX_HARTS];
+static uint64 expected_fault_cause[MAX_HARTS];
+static uint64 expected_fault_address[MAX_HARTS];
+static int fault_seen[MAX_HARTS];
+extern char trap_load_fault_site[], trap_load_fault_resume[];
+extern char trap_store_fault_site[], trap_store_fault_resume[];
+extern int trap_load_probe(uint64 address);
+extern int trap_store_probe(uint64 address);
 
-struct spinlock tickslock;
-uint ticks;
-
-extern char trampoline[], uservec[], userret[];
-
-// in kernelvec.S, calls kerneltrap().
-void kernelvec();
-
-extern int devintr();
-
-void
-trapinit(void)
+static int test_access_fault(uint64 address, int store)
 {
-  initlock(&tickslock, "time");
+    uint64 hart = r_tp();
+    if (hart >= MAX_HARTS) return 0;
+    int was_enabled = intr_get();
+    intr_off();
+    expected_fault_address[hart] = address;
+    fault_seen[hart] = 0;
+    expected_fault_cause[hart] = store ? 15 : 13;
+    asm volatile("" : : : "memory");
+    int resumed = store ? trap_store_probe(address) : trap_load_probe(address);
+    asm volatile("" : : : "memory");
+    expected_fault_cause[hart] = 0;
+    int ok = resumed && fault_seen[hart];
+    if (was_enabled) intr_on();
+    return ok;
 }
+int trap_test_load_fault(uint64 address) { return test_access_fault(address, 0); }
+int trap_test_store_fault(uint64 address) { return test_access_fault(address, 1); }
 
-// set up to take exceptions and traps while in the kernel.
-void
-trapinithart(void)
+
+void trap_init_hart(void)
 {
-  w_stvec((uint64)kernelvec);
+    intr_off();
+    w_sie(0);
+    w_stvec((uint64)kernel_vector); /* aligned address means direct mode */
+    w_sscratch(0);                /* no U-mode stack switching in Labs1-3 */
+#if LAB == 3
+    plic_init_hart();
+    sbi_set_timer(r_time() + TIMER_INTERVAL);
+#endif
 }
-
-//
-// handle an interrupt, exception, or system call from user space.
-// called from trampoline.S
-//
-void
-usertrap(void)
+void trap_enable(void)
 {
-  int which_dev = 0;
-
-  if((r_sstatus() & SSTATUS_SPP) != 0)
-    panic("usertrap: not from user mode");
-
-  // send interrupts and exceptions to kerneltrap(),
-  // since we're now in the kernel.
-  w_stvec((uint64)kernelvec);
-
-  struct proc *p = myproc();
-  
-  // save user program counter.
-  p->trapframe->epc = r_sepc();
-  
-  if(r_scause() == 8){
-    // system call
-
-    if(p->killed)
-      exit(-1);
-
-    // sepc points to the ecall instruction,
-    // but we want to return to the next instruction.
-    p->trapframe->epc += 4;
-
-    // an interrupt will change sstatus &c registers,
-    // so don't enable until done with those registers.
+#if LAB == 3
+    w_sie(SIE_STIE | SIE_SEIE);
     intr_on();
-
-    syscall();
-  } else if((which_dev = devintr()) != 0){
-    // ok
-  } else {
-    printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
-    printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
-    p->killed = 1;
-  }
-
-  if(p->killed)
-    exit(-1);
-
-  // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
-    yield();
-
-  usertrapret();
+#endif
 }
-
-//
-// return to user space
-//
-void
-usertrapret(void)
+uint64 trap_ticks(uint64 hartid)
 {
-  struct proc *p = myproc();
-
-  // we're about to switch the destination of traps from
-  // kerneltrap() to usertrap(), so turn off interrupts until
-  // we're back in user space, where usertrap() is correct.
-  intr_off();
-
-  // send syscalls, interrupts, and exceptions to trampoline.S
-  w_stvec(TRAMPOLINE + (uservec - trampoline));
-
-  // set up trapframe values that uservec will need when
-  // the process next re-enters the kernel.
-  p->trapframe->kernel_satp = r_satp();         // kernel page table
-  p->trapframe->kernel_sp = p->kstack + PGSIZE; // process's kernel stack
-  p->trapframe->kernel_trap = (uint64)usertrap;
-  p->trapframe->kernel_hartid = r_tp();         // hartid for cpuid()
-
-  // set up the registers that trampoline.S's sret will use
-  // to get to user space.
-  
-  // set S Previous Privilege mode to User.
-  unsigned long x = r_sstatus();
-  x &= ~SSTATUS_SPP; // clear SPP to 0 for user mode
-  x |= SSTATUS_SPIE; // enable interrupts in user mode
-  w_sstatus(x);
-
-  // set S Exception Program Counter to the saved user pc.
-  w_sepc(p->trapframe->epc);
-
-  // tell trampoline.S the user page table to switch to.
-  uint64 satp = MAKE_SATP(p->pagetable);
-
-  // jump to trampoline.S at the top of memory, which 
-  // switches to the user page table, restores user registers,
-  // and switches to user mode with sret.
-  uint64 fn = TRAMPOLINE + (userret - trampoline);
-  ((void (*)(uint64,uint64))fn)(TRAPFRAME, satp);
+    if (hartid >= MAX_HARTS) return 0;
+    return __atomic_load_n(&ticks[hartid], __ATOMIC_RELAXED);
 }
-
-// interrupts and exceptions from kernel code go here via kernelvec,
-// on whatever the current kernel stack is.
-void 
-kerneltrap()
+uint64 trap_uart_interrupts(void)
 {
-  int which_dev = 0;
-  uint64 sepc = r_sepc();
-  uint64 sstatus = r_sstatus();
-  uint64 scause = r_scause();
-  
-  if((sstatus & SSTATUS_SPP) == 0)
-    panic("kerneltrap: not from supervisor mode");
-  if(intr_get() != 0)
-    panic("kerneltrap: interrupts enabled");
-
-  if((which_dev = devintr()) == 0){
-    printf("scause %p\n", scause);
-    printf("sepc=%p stval=%p\n", r_sepc(), r_stval());
-    panic("kerneltrap");
-  }
-
-  // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING)
-    yield();
-
-  // the yield() may have caused some traps to occur,
-  // so restore trap registers for use by kernelvec.S's sepc instruction.
-  w_sepc(sepc);
-  w_sstatus(sstatus);
+    return __atomic_load_n(&uart_interrupts, __ATOMIC_RELAXED);
 }
-
-void
-clockintr()
+int trap_breakpoint_test(void)
 {
-  acquire(&tickslock);
-  ticks++;
-  wakeup(&ticks);
-  release(&tickslock);
+    uint64 hart = r_tp();
+    if (hart >= MAX_HARTS) return 0;
+    uint64 before = breakpoint_count[hart];
+    breakpoint_expected[hart] = 1;
+    asm volatile("" : : : "memory");
+    int registers_ok = trap_register_probe();
+    asm volatile("" : : : "memory");
+    return registers_ok && !breakpoint_expected[hart] &&
+           breakpoint_count[hart] == before + 1;
 }
-
-// check if it's an external interrupt or software interrupt,
-// and handle it.
-// returns 2 if timer interrupt,
-// 1 if other device,
-// 0 if not recognized.
-int
-devintr()
+uint64 trap_handle(uint64 cause, uint64 pc, uint64 value)
 {
-  uint64 scause = r_scause();
-
-  if((scause & 0x8000000000000000L) &&
-     (scause & 0xff) == 9){
-    // this is a supervisor external interrupt, via PLIC.
-
-    // irq indicates which device interrupted.
-    int irq = plic_claim();
-
-    if(irq == UART0_IRQ){
-      uartintr();
-    } else if(irq == VIRTIO0_IRQ){
-      virtio_disk_intr();
-    } else if(irq){
-      printf("unexpected interrupt irq=%d\n", irq);
+    uint64 hart = r_tp();
+    if (hart >= MAX_HARTS) panic("trap: invalid hart ID");
+#if LAB == 3
+    if (cause == ((1UL << 63) | 5)) {
+        __atomic_fetch_add(&ticks[hart], 1, __ATOMIC_RELAXED);
+        sbi_set_timer(r_time() + TIMER_INTERVAL);
+        return pc;                /* no guessed PC+4: sepc is continuation */
     }
-
-    // the PLIC allows each device to raise at most one
-    // interrupt at a time; tell the PLIC the device is
-    // now allowed to interrupt again.
-    if(irq)
-      plic_complete(irq);
-
-    return 1;
-  } else if(scause == 0x8000000000000001L){
-    // software interrupt from a machine-mode timer interrupt,
-    // forwarded by timervec in kernelvec.S.
-
-    if(cpuid() == 0){
-      clockintr();
+    if (cause == ((1UL << 63) | 9)) {
+        uint32 irq;
+        while ((irq = plic_claim()) != 0) {
+            if (irq == UART_IRQ) {
+                __atomic_fetch_add(&uart_interrupts, 1, __ATOMIC_RELAXED);
+                uart_intr();
+            }
+            plic_complete(irq);   /* finish even an unexpected device source */
+        }
+        return pc;
     }
-    
-    // acknowledge the software interrupt by clearing
-    // the SSIP bit in sip.
-    w_sip(r_sip() & ~2);
-
-    return 2;
-  } else {
-    return 0;
-  }
+#endif
+    if (expected_fault_cause[hart] == cause &&
+        expected_fault_address[hart] == value) {
+        uint64 site = cause == 13 ? (uint64)trap_load_fault_site :
+                                   (uint64)trap_store_fault_site;
+        if ((cause == 13 || cause == 15) && pc == site) {
+            fault_seen[hart] = 1;
+            expected_fault_cause[hart] = 0;
+            return cause == 13 ? (uint64)trap_load_fault_resume :
+                                 (uint64)trap_store_fault_resume;
+        }
+    }
+    if (cause == 3 && breakpoint_expected[hart] &&
+        pc == (uint64)trap_breakpoint_site) {
+        breakpoint_expected[hart] = 0;
+        ++breakpoint_count[hart];
+        return pc + 4;            /* this deliberately emitted ebreak is 4B */
+    }
+    /* A fault can occur while the console lock is held: diagnose without it. */
+    uart_puts("trap: scause=");
+    for (int shift = 60; shift >= 0; shift -= 4)
+        uart_putc("0123456789abcdef"[(cause >> shift) & 15]);
+    uart_puts(" sepc=");
+    for (int shift = 60; shift >= 0; shift -= 4)
+        uart_putc("0123456789abcdef"[(pc >> shift) & 15]);
+    uart_puts(" stval=");
+    for (int shift = 60; shift >= 0; shift -= 4)
+        uart_putc("0123456789abcdef"[(value >> shift) & 15]);
+    uart_puts("\n");
+    panic("unexpected supervisor trap");
 }
 
+int trap_selftest(void) { return trap_breakpoint_test() ? 0 : 1; }
