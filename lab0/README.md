@@ -11,9 +11,9 @@ Lab 0 的目标是确认工具能工作，并分清宿主 Linux、QEMU 和 xv6�
 
 ## 已有记录
 
-参考 xv6 位于仓库旁的 `../xv6-labs-2020/`，其 `util` 分支已经由你亲手启动。你的 `echo hello-xv6` 和 `ls` 输出保存在 [本人实验记录](../docs/MY_LAB_NOTES.md)。
+参考 xv6 位于仓库旁的 `../xv6-labs-2020/`，其 `util` 分支已经由你亲手启动。你的 `echo hello-xv6` 和 `ls` 输出保存在 [本人实验记录](docs/NOTES.md)。
 
-2026-10-04 的 Agent 独立构建与运行验证记录：[构建](../docs/evidence/lab0-build.log)、[运行](../docs/evidence/lab0-runtime.log)。GDB 实际连接和实体开发板运行尚未在该次验证中检查。
+2026-10-04 的 Agent 独立构建与运行验证记录：[构建](docs/evidence/build.log)、[运行](docs/evidence/runtime.log)。GDB 实际连接和实体开发板运行尚未在该次验证中检查。
 
 ## 再次运行
 

@@ -62,10 +62,7 @@ PugeZhang/
 ├── docs/
 │   ├── ROADMAP.md        Lab 0–9 的建设顺序和交付边界
 │   ├── DEVELOPMENT.md    下一阶段怎样在现有基础上继续
-│   ├── LAB123_DESIGN.md  前三个实验的阅读路线
-│   ├── MY_LAB_NOTES.md   本人的真实记录
-│   ├── reference/       课程依据与核对范围
-│   └── history/         旧版设计和实验记录
+│   └── COURSE_SCOPE.md  课程依据与核对范围
 └── scripts/check.py      当前 Lab 1–3 的自动运行检查
 ```
 
@@ -82,7 +79,8 @@ lab3/
 ├── monitor/       monitor.c 输入命令，diagnostics.c 展示状态
 ├── tests/         自检编排、多核并发检查
 ├── include/       每个模块对外提供的接口
-├── docs/evidence/ 本实验的运行证据
+├── docs/          本实验的个人记录与运行证据
+│   └── evidence/  按 cpuN/ 保存构建、ELF、串口日志
 ├── linker.ld      本阶段内存布局
 └── Makefile       本阶段构建和模拟器入口
 ```
@@ -174,4 +172,4 @@ Lab 1 自己完成 M→S，尚无 `mm/`。Lab 2 不开设备和时钟中断。La
 
 特色始终围绕“让内核状态可以被解释”：当前有每核启动记录、页归还检查、地址翻译窗口和真实中断计数。后续可沿用诊断接口显示进程状态、上下文切换次数、缓存命中与路径查找过程。后四项现在是规划，不是已运行的功能。
 
-课程依据与核对范围见 [课程对照](docs/reference/COURSE_SCOPE.md)。当前自动运行证据见 [Lab 1–3 汇总](docs/evidence/lab123-split/summary.txt)。
+课程依据与核对范围见 [课程对照](docs/COURSE_SCOPE.md)。自动运行证据归各实验：[Lab 1](lab1/docs/evidence/summary.txt)、[Lab 2](lab2/docs/evidence/summary.txt)、[Lab 3](lab3/docs/evidence/summary.txt)。

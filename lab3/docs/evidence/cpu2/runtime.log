@@ -1,0 +1,250 @@
+Agent-run UART observation, started 2026-10-08T10:13:46.013410+00:00
+$ qemu-system-riscv64 -machine virt -bios default -kernel /home/zpg/Work/PugeZhang/lab3/build/cpu2/kernel.elf -m 128M -smp 2 -nographic -monitor none
+
+
+OpenSBI v0.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name          : QEMU Virt Machine
+Platform HART Features : RV64ACDFIMSU
+Current Hart           : 0
+Firmware Base          : 0x80000000
+Firmware Size          : 128 KB
+Runtime SBI Version    : 0.2
+
+MIDELEG : 0x0000000000000222
+MEDELEG : 0x000000000000b109
+PMP0    : 0x0000000080000000-0x000000008001ffff (A)
+PMP1    : 0x0000000000000000-0xffffffffffffffff (A,R,W,X)
+
+PugeZhangOS: Lab 3, 2 harts, boot hart 0
+[firmware] OpenSBI DTB=0x82200000 bytes=4278 preserved
+[firmware] HSM started=1
+[uart-test] hart=0 seq=0
+[uart-test] hart=0 seq=1
+[uart-test] hart=0 seq=2
+[uart-test] hart=0 seq=3
+[uart-test] hart=1 seq=0
+[uart-test] hart=1 seq=1
+[uart-test] hart=1 seq=2
+[uart-test] hart=1 seq=3
+[boot] hart=0 stages=0x7f ready=1 stack=0x8020d000..0x8020e000 satp=0x8000000000080210
+[boot] hart=1 stages=0x77 ready=1 stack=0x8020c000..0x8020d000 satp=0x8000000000080210
+[test] page-concurrent PASS
+[mem] pool=kernel total=16118 free=16015 allocated=103 rejected=0 range=0x80210000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=0 range=0x84108000..0x88000000
+[test] format PASS
+[PASS] lab2 page kernel uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page user uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page reject kernel image address
+[PASS] lab2 page reject invalid pool
+[PASS] lab2 page reject one-past-RAM address
+[PASS] lab2 page preserve firmware DTB
+[test] page PASS
+[PASS] lab2 vm UART identity RW
+[PASS] lab2 vm shutdown syscon identity RW
+[PASS] lab2 vm PLIC identity RW
+[PASS] lab2 vm kernel text identity RX
+[PASS] lab2 vm last text page RX
+[PASS] lab2 vm kernel rodata identity R
+[PASS] lab2 vm kernel data identity RW
+[PASS] lab2 vm root table identity RW
+[PASS] lab2 vm last RAM byte identity RW
+[PASS] lab2 vm OpenSBI excluded
+[PASS] lab2 vm CLINT excluded
+[PASS] lab2 vm address zero unmapped
+[PASS] lab2 vm beyond RAM unmapped
+[PASS] lab2 vm reject noncanonical bit 38
+[PASS] lab2 vm reject noncanonical high bits
+[PASS] lab2 vm canonical upper half accepted
+[PASS] lab2 vm reject write-only leaf
+[PASS] lab2 vm reject unaligned mapping
+[PASS] lab2 vm reject duplicate mapping
+[PASS] lab2 vm diagnostic alias points to dedicated frame
+[PASS] lab2 vm hardware MMU is Sv39
+[PASS] lab2 vm hardware alias write visible at PA
+[PASS] lab2 vm hardware PA write visible at alias
+[PASS] lab2 vm hardware zero-page load rejected
+[PASS] lab2 vm hardware firmware load rejected
+[PASS] lab2 vm hardware text write rejected
+[PASS] lab2 vm hardware rodata write rejected
+[test] vm PASS
+[test] trap PASS
+[test] summary failures=0
+[ready] lab=3 cpus=2 leader=0
+pgos> boot
+[boot] hart=0 stages=0x7f ready=1 stack=0x8020d000..0x8020e000 satp=0x8000000000080210
+[boot] hart=1 stages=0x77 ready=1 stack=0x8020c000..0x8020d000 satp=0x8000000000080210
+pgos> help
+Commands: help boot mem vm [hex-address] ticks irq test echo <text> quit
+Kernel monitor in S-mode; no user processes yet. Lab 3, CPUS=2
+pgos> test
+[test] format PASS
+[PASS] lab2 page kernel uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page user uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page reject kernel image address
+[PASS] lab2 page reject invalid pool
+[PASS] lab2 page reject one-past-RAM address
+[PASS] lab2 page preserve firmware DTB
+[test] page PASS
+[PASS] lab2 vm UART identity RW
+[PASS] lab2 vm shutdown syscon identity RW
+[PASS] lab2 vm PLIC identity RW
+[PASS] lab2 vm kernel text identity RX
+[PASS] lab2 vm last text page RX
+[PASS] lab2 vm kernel rodata identity R
+[PASS] lab2 vm kernel data identity RW
+[PASS] lab2 vm root table identity RW
+[PASS] lab2 vm last RAM byte identity RW
+[PASS] lab2 vm OpenSBI excluded
+[PASS] lab2 vm CLINT excluded
+[PASS] lab2 vm address zero unmapped
+[PASS] lab2 vm beyond RAM unmapped
+[PASS] lab2 vm reject noncanonical bit 38
+[PASS] lab2 vm reject noncanonical high bits
+[PASS] lab2 vm canonical upper half accepted
+[PASS] lab2 vm reject write-only leaf
+[PASS] lab2 vm reject unaligned mapping
+[PASS] lab2 vm reject duplicate mapping
+[PASS] lab2 vm diagnostic alias points to dedicated frame
+[PASS] lab2 vm hardware MMU is Sv39
+[PASS] lab2 vm hardware alias write visible at PA
+[PASS] lab2 vm hardware PA write visible at alias
+[PASS] lab2 vm hardware zero-page load rejected
+[PASS] lab2 vm hardware firmware load rejected
+[PASS] lab2 vm hardware text write rejected
+[PASS] lab2 vm hardware rodata write rejected
+[test] vm PASS
+[test] trap PASS
+[test] summary failures=0
+pgos> mem
+[mem] pool=kernel total=16118 free=16015 allocated=103 rejected=10 range=0x80210000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=8 range=0x84108000..0x88000000
+pgos> test
+[test] format PASS
+[PASS] lab2 page kernel uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page user uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page reject kernel image address
+[PASS] lab2 page reject invalid pool
+[PASS] lab2 page reject one-past-RAM address
+[PASS] lab2 page preserve firmware DTB
+[test] page PASS
+[PASS] lab2 vm UART identity RW
+[PASS] lab2 vm shutdown syscon identity RW
+[PASS] lab2 vm PLIC identity RW
+[PASS] lab2 vm kernel text identity RX
+[PASS] lab2 vm last text page RX
+[PASS] lab2 vm kernel rodata identity R
+[PASS] lab2 vm kernel data identity RW
+[PASS] lab2 vm root table identity RW
+[PASS] lab2 vm last RAM byte identity RW
+[PASS] lab2 vm OpenSBI excluded
+[PASS] lab2 vm CLINT excluded
+[PASS] lab2 vm address zero unmapped
+[PASS] lab2 vm beyond RAM unmapped
+[PASS] lab2 vm reject noncanonical bit 38
+[PASS] lab2 vm reject noncanonical high bits
+[PASS] lab2 vm canonical upper half accepted
+[PASS] lab2 vm reject write-only leaf
+[PASS] lab2 vm reject unaligned mapping
+[PASS] lab2 vm reject duplicate mapping
+[PASS] lab2 vm diagnostic alias points to dedicated frame
+[PASS] lab2 vm hardware MMU is Sv39
+[PASS] lab2 vm hardware alias write visible at PA
+[PASS] lab2 vm hardware PA write visible at alias
+[PASS] lab2 vm hardware zero-page load rejected
+[PASS] lab2 vm hardware firmware load rejected
+[PASS] lab2 vm hardware text write rejected
+[PASS] lab2 vm hardware rodata write rejected
+[test] vm PASS
+[test] trap PASS
+[test] summary failures=0
+pgos> mem
+[mem] pool=kernel total=16118 free=16015 allocated=103 rejected=15 range=0x80210000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> vm
+[vm] UART va=0x10000000 pa=0x10000000 perms=RW vpn=0/128/0 level=0 pte=0x40000c7
+[vm] PLIC va=0xc000000 pa=0xc000000 perms=RW vpn=0/96/0 level=0 pte=0x30000c7
+[vm] TEXT va=0x80200000 pa=0x80200000 perms=RX vpn=2/1/0 level=0 pte=0x2008004b
+[vm] RODATA va=0x80204000 pa=0x80204000 perms=R vpn=2/1/4 level=0 pte=0x20081043
+[vm] DATA va=0x80205000 pa=0x80205000 perms=RW vpn=2/1/5 level=0 pte=0x200814c7
+[vm] ALIAS va=0x40000000 pa=0x80274000 perms=RW vpn=1/0/0 level=0 pte=0x2009d0c7
+[vm] FIRMWARE va=0x80000000 unmapped
+[vm] CLINT va=0x2000000 unmapped
+pgos> ticks
+[ticks] hart=0 count=39
+[ticks] hart=1 count=39
+pgos> ticks
+[ticks] hart=0 count=78
+[ticks] hart=1 count=78
+pgos> irq
+[irq] uart_rx=46 bytes=47 dropped=0
+pgos> echo CRLF_OK
+[echo] CRLF_OK
+pgos> echo FIXx ED
+[echo] FIXED
+pgos> echo DELX _OK
+[echo] DEL_OK
+pgos> echo LF_OK
+[echo] LF_OK
+pgos> echo bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+[echo] bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+pgos> echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[input] line too long; discarded
+pgos> echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[input] line too long; discarded
+pgos> echo RECOVERED
+[echo] RECOVERED
+pgos> irq
+[irq] uart_rx=675 bytes=681 dropped=0
+pgos> quit
+[shutdown]

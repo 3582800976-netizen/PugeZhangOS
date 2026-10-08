@@ -42,7 +42,7 @@ PugeZhang/
 ├── lab3/              同样结构；增加 PLIC、串口中断和时钟
 ├── lab4/ … lab9/       后续阶段规划；实现时继承前一实验的完整基础
 ├── scripts/check.py   自动构建、驱动 QEMU、收集各实验日志
-├── docs/              架构总览、本人记录和历史资料
+├── docs/              全系统路线、开发约定与课程依据
 ├── extras/host-shell/  早期宿主 Linux Shell 练习
 └── Makefile           实验运行与验证的导航入口
 ```
@@ -76,13 +76,14 @@ make check                 # 检查三个实验全部 12 个配置
 
 单一配置可用 `python3 scripts/check.py --lab 2 --cpus 3`。检查包含重新编译、ELF 入口、多核启动、自检、真实串口交互和正常退出；Lab 2 加入页池与 MMU 检查，Lab 3 加入每核时钟与串口中断计数。
 
-当前分目录版本的证据：
+验证记录归各实验所有，运行汇总如下：
 
 - [Lab 1](lab1/docs/evidence/summary.txt)
 - [Lab 2](lab2/docs/evidence/summary.txt)
 - [Lab 3](lab3/docs/evidence/summary.txt)
-- [全部实验汇总](docs/evidence/lab123-split/summary.txt)
-- [仓库外独立构建记录](docs/evidence/lab123-split/standalone-build.txt)
+
+
+各实验的 `docs/evidence/cpuN/` 分别保存 `build.log`、`elf.log` 和 `runtime.log`；独立构建证明在同一实验的 `docs/evidence/standalone-build.log`。`make check` 的总体结果打印到终端，每个实验保存自己的汇总。
 
 **2026-10-08 重整理后：12 个配置全部通过、0 个失败；三个实验分别复制到仓库外编译也全部通过。**
 
@@ -90,12 +91,12 @@ make check                 # 检查三个实验全部 12 个配置
 
 ## 怎样理解和比较
 
-[系统架构](ARCHITECTURE.md)解释完整模块及未来接入边界；[前三个实验的阅读路线](docs/LAB123_DESIGN.md)对应当前源码；[开发约定](docs/DEVELOPMENT.md)说明后续阶段怎样接续。每个实验的 README 进一步解释具体架构和验收现象。
+[系统架构](ARCHITECTURE.md)解释完整模块及未来接入边界；[开发约定](docs/DEVELOPMENT.md)说明后续阶段怎样接续。源码阅读顺序、实验说明和验收现象分别写在对应 Lab 的 README 中。
 
 小巧思也按阶段区分：Lab 1 的每核启动记录，Lab 2 的页归还检查与虚拟地址翻译窗口，Lab 3 的真实中断计数。它们用于观察内核实际状态。
 
-[本人实验记录](docs/MY_LAB_NOTES.md)保留真实操作与理解。本轮内核实现、分目录整理和自动验证由 Agent 完成，记录归属如实保留。
+[Lab 0 本人实验记录](lab0/docs/NOTES.md)保留真实的 xv6 操作与理解。后续个人记录随对应实验放在 `labN/docs/NOTES.md`，有实际记录时再创建。本轮内核实现、分目录整理和自动验证由 Agent 完成，记录归属如实保留。
 
-早期原型与先前集成版本的说明放在 [历史资料](docs/history/README.md)。2026-10-05 的集成版本日志保存在 `docs/evidence/lab123/`；本次整理后的日志放在各实验内部。实验边界由目录表达；GitHub 的 `main` 首页用于整体框架和全阶段索引，`lab-3` 同步保存本次已验收的基础版本。
+过期设计和日志已移出当前项目，旧版本仍可通过 Git 历史查看。实验资料与日志归对应 Lab，根 `docs/` 仅保存全系统文档。GitHub 的 `main` 首页用于整体框架和全阶段索引，`lab-3` 同步保存本次已验收的基础版本。
 
 参考：[ECNU 课程任务](https://gitee.com/christinaaa/ecnu-oslab-2026-task)。旁边的 `../xv6-labs-2020/` 用于参考，当前内核不链接其代码。

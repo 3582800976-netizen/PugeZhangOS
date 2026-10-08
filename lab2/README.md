@@ -132,4 +132,4 @@ python3 scripts/check.py --lab 2 --cpus 1,2,3,8
 
 最新分目录版本的检查结果和原始日志保存在本阶段的 [docs/evidence/summary.txt](docs/evidence/summary.txt)。
 
-实现和自动测试由 Agent 协助完成。个人学习记录保留在上层 `docs/MY_LAB_NOTES.md`；理解这份实验时，从上面的启动路线和 `mem`、`vm` 输出开始即可。
+实现和自动测试由 Agent 协助完成。个人学习记录随本实验放在 `docs/NOTES.md`，有实际内容时再创建；理解这份实验时，从上面的启动路线和 `mem`、`vm` 输出开始即可。

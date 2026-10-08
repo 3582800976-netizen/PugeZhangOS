@@ -1,5 +1,0 @@
-$ make --no-print-directory LAB=3 CPUS=3
-
-mkdir -p build/lab3-cpu3/kernel/
-riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DLAB=3 -DCPUS=3 -c kernel/vm.c -o build/lab3-cpu3/kernel/vm.o
-riscv64-linux-gnu-ld -T linker.ld --defsym=KERNEL_BASE=0x80200000 -o build/lab3-cpu3/kernel.elf build/lab3-cpu3/boot/entry.o build/lab3-cpu3/boot/trap.o build/lab3-cpu3/boot/start.o build/lab3-cpu3/kernel/main.o build/lab3-cpu3/kernel/spinlock.o build/lab3-cpu3/kernel/trap.o build/lab3-cpu3/drivers/uart.o build/lab3-cpu3/drivers/plic.o build/lab3-cpu3/lib/console.o build/lab3-cpu3/lib/memory.o build/lab3-cpu3/lib/sbi.o build/lab3-cpu3/kernel/page.o build/lab3-cpu3/kernel/vm.o

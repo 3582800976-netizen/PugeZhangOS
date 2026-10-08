@@ -148,7 +148,7 @@ def build(lab: int, cpus: int, directory: Path) -> Path:
     result = subprocess.run(
         argv, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120
     )
-    (directory / f"lab{lab}-cpu{cpus}-build.log").write_bytes(
+    (directory / "build.log").write_bytes(
         ("$ " + shlex.join(argv) + "\n\n").encode() + result.stdout
     )
     require(result.returncode == 0, f"build failed:\n{readable(result.stdout)}")
@@ -167,7 +167,7 @@ def check_elf(kernel: Path, lab: int, toolprefix: str, directory: Path) -> None:
     nm_argv = [toolprefix + "nm", "-n", str(kernel)]
     symbols = subprocess.run(nm_argv, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=5)
     records += ("\n$ " + shlex.join(nm_argv) + "\n\n").encode() + symbols.stdout
-    (directory / f"{kernel.parent.name}-elf.log").write_bytes(records)
+    (directory / "elf.log").write_bytes(records)
     require(result.returncode == 0, f"readelf failed: {readable(result.stdout)}")
     header = readable(result.stdout)
     entry = re.search(r"Entry point address:\s*(0x[0-9a-fA-F]+)", header)
@@ -256,7 +256,7 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
         "-kernel", str(kernel), "-m", "128M", "-smp", str(cpus),
         "-nographic", "-monitor", "none",
     ]
-    machine = Machine(argv, directory / f"lab{lab}-cpu{cpus}-runtime.log")
+    machine = Machine(argv, directory / "runtime.log")
     passed: list[str] = []
     try:
         startup = readable(machine.wait_for(PROMPT, timeout=20))
@@ -364,7 +364,7 @@ def main() -> int:
     parser.add_argument("--toolprefix", default=os.environ.get("TOOLPREFIX", "riscv64-linux-gnu-"))
     parser.add_argument("--no-build", action="store_true", help="exercise existing build outputs")
     parser.add_argument("--evidence", type=Path,
-                        help="optional evidence root; defaults to each lab's docs/evidence/")
+                        help="optional evidence root with labN/cpuN/ subdirectories; defaults to each lab's docs/evidence/")
     args = parser.parse_args()
     try:
         cpus = list(dict.fromkeys(int(count) for count in args.cpus.split(",")))
@@ -373,46 +373,40 @@ def main() -> int:
     if not cpus or any(count < 1 or count > 8 for count in cpus):
         parser.error("CPU counts must be from 1 to 8")
     labs = [1, 2, 3] if args.lab == "all" else [int(args.lab)]
-    summary_directory = args.evidence or ROOT / "docs" / "evidence" / "lab123-split"
-    summary_directory.mkdir(parents=True, exist_ok=True)
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    summary = [f"Agent-run runtime verification. Started at {started}",
-               "Independent sources: lab1/, lab2/, lab3/.",
-               "Monitor is S-mode kernel code, not a user shell.", ""]
     failures = 0
-    try:
-        for lab in labs:
-            directory = (args.evidence / f"lab{lab}" if args.evidence else
-                         ROOT / f"lab{lab}" / "docs" / "evidence")
-            directory.mkdir(parents=True, exist_ok=True)
-            lab_summary = summary[:4] + [""]
-            lab_failures = 0
-            for count in cpus:
-                name = f"Lab {lab}, CPUs={count}"
-                print(f"Checking {name} ...", flush=True)
-                try:
-                    kernel = ROOT / f"lab{lab}" / "build" / f"cpu{count}" / "kernel.elf"
-                    if not args.no_build:
-                        kernel = build(lab, count, directory)
-                    require(kernel.is_file(), f"kernel missing: {kernel}")
-                    check_elf(kernel, lab, args.toolprefix, directory)
-                    checks = exercise(lab, count, args.qemu, kernel, directory)
-                    records = [f"PASS {name}"] + ["  - " + check for check in checks]
-                    summary.extend(records)
-                    lab_summary.extend(records)
-                    print(f"PASS {name} ({len(checks)} groups)", flush=True)
-                except (CheckFailure, OSError, subprocess.TimeoutExpired) as error:
-                    failures += 1
-                    lab_failures += 1
-                    summary.append(f"FAIL {name}: {error}")
-                    lab_summary.append(f"FAIL {name}: {error}")
-                    print(f"FAIL {name}: {error}", flush=True)
-            lab_summary.extend(["", f"Results: {len(cpus) - lab_failures} passed, {lab_failures} failed."])
-            (directory / "summary.txt").write_text("\n".join(lab_summary) + "\n", encoding="utf-8")
-    finally:
-        summary.extend(["", f"Results: {len(labs) * len(cpus) - failures} passed, {failures} failed."])
-        (summary_directory / "summary.txt").write_text("\n".join(summary) + "\n", encoding="utf-8")
-    print(f"Evidence: {summary_directory / 'summary.txt'}", flush=True)
+    for lab in labs:
+        directory = (args.evidence / f"lab{lab}" if args.evidence else
+                     ROOT / f"lab{lab}" / "docs" / "evidence")
+        directory.mkdir(parents=True, exist_ok=True)
+        lab_summary = [f"Agent-run Lab {lab} runtime verification. Started at {started}",
+                       f"Independent sources: lab{lab}/.",
+                       "Monitor is S-mode kernel code, not a user shell.", ""]
+        lab_failures = 0
+        for count in cpus:
+            config_directory = directory / f"cpu{count}"
+            config_directory.mkdir(parents=True, exist_ok=True)
+            name = f"Lab {lab}, CPUs={count}"
+            print(f"Checking {name} ...", flush=True)
+            try:
+                kernel = ROOT / f"lab{lab}" / "build" / f"cpu{count}" / "kernel.elf"
+                if not args.no_build:
+                    kernel = build(lab, count, config_directory)
+                require(kernel.is_file(), f"kernel missing: {kernel}")
+                check_elf(kernel, lab, args.toolprefix, config_directory)
+                checks = exercise(lab, count, args.qemu, kernel, config_directory)
+                records = [f"PASS {name}"] + ["  - " + check for check in checks]
+                lab_summary.extend(records)
+                print(f"PASS {name} ({len(checks)} groups)", flush=True)
+            except (CheckFailure, OSError, subprocess.TimeoutExpired) as error:
+                failures += 1
+                lab_failures += 1
+                lab_summary.append(f"FAIL {name}: {error}")
+                print(f"FAIL {name}: {error}", flush=True)
+        lab_summary.extend(["", f"Results: {len(cpus) - lab_failures} passed, {lab_failures} failed."])
+        (directory / "summary.txt").write_text("\n".join(lab_summary) + "\n", encoding="utf-8")
+        print(f"Lab {lab} evidence: {directory / 'summary.txt'}", flush=True)
+    print(f"Results: {len(labs) * len(cpus) - failures} passed, {failures} failed.", flush=True)
     return 1 if failures else 0
 
 

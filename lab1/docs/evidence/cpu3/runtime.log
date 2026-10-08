@@ -1,0 +1,51 @@
+Agent-run UART observation, started 2026-10-08T10:13:36.736880+00:00
+$ qemu-system-riscv64 -machine virt -bios none -kernel /home/zpg/Work/PugeZhang/lab1/build/cpu3/kernel.elf -m 128M -smp 3 -nographic -monitor none
+
+
+PugeZhangOS: Lab 1, 3 harts, boot hart 2
+[uart-test] hart=2 seq=0
+[uart-test] hart=0 seq=0
+[uart-test] hart=2 seq=1
+[uart-test] hart=0 seq=1
+[uart-test] hart=2 seq=2
+[uart-test] hart=2 seq=3
+[uart-test] hart=0 seq=2
+[uart-test] hart=0 seq=3
+[uart-test] hart=1 seq=0
+[uart-test] hart=1 seq=1
+[uart-test] hart=1 seq=2
+[uart-test] hart=1 seq=3
+[boot] hart=0 stages=0x67 ready=1 stack=0x8000b000..0x8000c000 satp=0x0
+[boot] hart=1 stages=0x67 ready=1 stack=0x8000a000..0x8000b000 satp=0x0
+[boot] hart=2 stages=0x6f ready=1 stack=0x80009000..0x8000a000 satp=0x0
+[test] format PASS
+[test] summary failures=0
+[ready] lab=1 cpus=3 leader=2
+pgos> boot
+[boot] hart=0 stages=0x67 ready=1 stack=0x8000b000..0x8000c000 satp=0x0
+[boot] hart=1 stages=0x67 ready=1 stack=0x8000a000..0x8000b000 satp=0x0
+[boot] hart=2 stages=0x6f ready=1 stack=0x80009000..0x8000a000 satp=0x0
+pgos> help
+Commands: help boot test echo <text> quit
+Kernel monitor in S-mode; Lab 1, CPUS=3
+pgos> test
+[test] format PASS
+[test] summary failures=0
+pgos> echo CRLF_OK
+[echo] CRLF_OK
+pgos> echo FIXx ED
+[echo] FIXED
+pgos> echo DELX _OK
+[echo] DEL_OK
+pgos> echo LF_OK
+[echo] LF_OK
+pgos> echo bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+[echo] bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+pgos> echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[input] line too long; discarded
+pgos> echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[input] line too long; discarded
+pgos> echo RECOVERED
+[echo] RECOVERED
+pgos> quit
+[shutdown]
