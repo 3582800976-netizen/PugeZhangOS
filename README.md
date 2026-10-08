@@ -1,89 +1,101 @@
-# PugeZhangOS
+# PugeZhangOS · 系统框架与实验路线
 
-张璞格的 ECNU OSLab 2026 操作系统实验。以 C 和 RISC-V 为基础，参考 xv6 的架构思想，独立组织接口与实现，逐步从机器启动发展到完整内核。
+ECNU OSLab 2026：参考 xv6 的原理，用 C 和 RISC-V 从启动、内存管理到中断逐步构建内核。
 
-当前实现 Lab 1–3：启动、串口与格式化输出、物理页分配、Sv39 内核页表、陷阱入口、串口输入中断、每核时钟中断。Lab 4–9 尚未实现。
+**先读 [整个操作系统的架构](ARCHITECTURE.md)，再看 [Lab 0–9 建设路线](docs/ROADMAP.md)，最后进入当前实验。**
 
-## 直接运行
+Lab 1–3 各有自己的完整源码、Makefile 和说明；Lab 4–9 已有独立的目标与接入规划，尚未实现。实验目录区分阶段，模块目录区分职责。
 
-在项目目录执行：
-
-```sh
-make qemu LAB=1 CPUS=3
-make qemu LAB=2 CPUS=3
-make qemu LAB=3 CPUS=3
-```
-
-一次运行一个阶段。默认 `make qemu` 启动 Lab 3、三核。`CPUS` 支持 1–8，构建参数与模拟器核数必须一致。不同阶段和核数使用独立的 `build/labN-cpuM/`，并自动跟踪头文件依赖。
-
-看到 `pgos> ` 后输入 `help`。输入 `quit` 正常退出，不必使用终端快捷键。
-
-| 命令 | 作用 |
-| --- | --- |
-| `boot` | 每个核的启动阶段、栈范围、实际页表寄存器 |
-| `mem` | 内核和用户页池的总页数、空闲页数、已分配页数与错误归还次数 |
-| `vm` | 展示代码、常量、数据、设备及保护区域的映射权限 |
-| `vm 40000000` | 展示诊断别名的三级页表索引和实际物理地址 |
-| `ticks` | 查看每个核的时钟中断次数，再次执行能观察增长 |
-| `irq` | 查看实际串口中断、接收字节和缓冲丢弃计数 |
-| `test` | 重复执行本阶段的自检 |
-| `echo 内容` | 测试输入与行编辑 |
-| `quit` | 关闭 QEMU |
-
-这是在 S-mode 内核中执行的诊断台，不是用户态 Shell。Lab 1/2 使用轮询输入；Lab 3 使用 PLIC 中断与接收环形缓冲。未到对应阶段的功能会明确说明未启用。
-
-## 三个阶段
-
-| 阶段 | 启动方式 | 内容 |
+| 实验 | 本次解决什么问题 | 从哪里开始 |
 | --- | --- | --- |
-| Lab 1 | `-bios none`，`0x80000000`，自己完成 M→S | BSS 初始化、独立栈、PMP、特权切换、串口、自旋锁和安全格式化、多核就绪发布 |
-| Lab 2 | OpenSBI，`0x80200000`，S-mode 入口 | 两个物理页池、锁与归还检查、三级页表、每核启用 Sv39、权限和地址翻译验证 |
-| Lab 3 | OpenSBI，沿用 Lab 2 | 保存/恢复整数寄存器、PLIC UART 接收、SBI 每核时钟、输入编辑与异常诊断 |
+| Lab 0 | 准备工具，运行参考 xv6 | [环境说明](lab0/README.md) |
+| Lab 1 | CPU 怎样进入内核，并把字符输出到终端 | [Lab 1 说明](lab1/README.md) |
+| Lab 2 | 内核怎样分配物理页、建立受权限保护的页表 | [Lab 2 说明](lab2/README.md) |
+| Lab 3 | 时钟和输入怎样打断程序，处理后继续执行 | [Lab 3 说明](lab3/README.md) |
+| Lab 4 | 怎样运行第一个用户进程 | [Lab 4 规划](lab4/README.md) |
+| Lab 5 | 用户程序怎样调用内核服务、管理用户内存 | [Lab 5 规划](lab5/README.md) |
+| Lab 6 | 怎样调度进程、处理创建和结束 | [Lab 6 规划](lab6/README.md) |
+| Lab 7 | 怎样读写磁盘并缓存数据块 | [Lab 7 规划](lab7/README.md) |
+| Lab 8 | 怎样由路径找到 inode 和目录项 | [Lab 8 规划](lab8/README.md) |
+| Lab 9 | 怎样提供文件接口和用户 Shell | [Lab 9 规划](lab9/README.md) |
 
-固件、内核栈和 DTB 不进入空闲页链表。代码 RX、只读数据 R、数据与 RAM RW；固件和 CLINT 不映射。每个核使用同一内核页表，但分别设置自己的 `satp`。
-
-特色功能围绕让系统状态可观察：每核启动记录、页所有权检查、虚拟地址翻译查询、真实的中断计数。额外的虚拟地址 `0x40000000` 指向一个专用物理页，自检通过实际读写证明地址翻译；主动触发并恢复预期的页错误，用来检查写保护。
-
-## 验证与理解
-
-```sh
-make check
-```
-
-运行 Lab 1–3，每阶段分别测试 1、2、3、8 核。只检查一个配置：
-
-```sh
-python3 scripts/check.py --lab 3 --cpus 3
-```
-
-实际结果和完整 UART 日志保存在 [验证目录](docs/evidence/lab123/summary.txt)。支持环境固定为 QEMU virt、128MiB 内存；本机验证工具是 QEMU 5.1.0、其默认 OpenSBI 0.7、RISC-V GCC 13.3.0。关机使用 QEMU 平台的 32 位 finisher，避开旧固件的访问宽度兼容问题。
-
-[Lab 1–3 详细设计与易懂说明](docs/LAB123_DESIGN.md)解释每个模块、验收方式、特色和 Agent 分工。
-
-[本人实验记录](docs/MY_LAB_NOTES.md)保留本人的真实操作和理解。根据 2026-10-05 的新授权，本轮代码和自动验证由 Agent 完成；本人此前参与了 xv6 运行、独立栈、特权切换和整数拆分的学习。本轮不把 Agent 工作记成本人手写，也不自动判定本人理解已全部通过。
-
-## 目录地图
+## 目录一眼看清
 
 ```text
-boot/       汇编入口、启动约定、陷阱寄存器保存恢复
-kernel/     多核初始化、锁、物理页、页表、中断、诊断台
-lib/        格式化输出、内存操作、SBI 调用
-drivers/    UART 和 PLIC 驱动
-include/    类型、硬件常量与模块接口
-scripts/    自动构建与真实 QEMU 验证
-docs/       设计、学习记录和证据
-build/      各配置的生成文件，Git 忽略
-shell/      旧宿主 Linux Shell 练习，与当前内核独立
+PugeZhang/
+├── ARCHITECTURE.md    全系统模块、依赖关系、现有与规划边界
+├── lab0/              工具与 xv6 环境说明
+├── lab1/              启动、串口、格式化输出、锁
+│   ├── README.md      目标、文件职责、阅读顺序、验收方法
+│   ├── Makefile       只编译本实验
+│   ├── linker.ld      本实验的加载地址和内存布局
+│   ├── boot/          入口与栈设置
+│   ├── kernel/        启动编排、多核状态与锁
+│   ├── trap/          异常入口与处理
+│   ├── monitor/       输入命令与状态展示
+│   ├── tests/         自检编排
+│   ├── drivers/       硬件访问
+│   ├── lib/           打印、内存等辅助函数
+│   ├── include/       本实验的类型、常量、接口
+│   └── docs/evidence/ 本实验的真实验证日志
+├── lab2/              同样结构；新增 mm/ 物理页、Sv39 和权限验证
+├── lab3/              同样结构；增加 PLIC、串口中断和时钟
+├── lab4/ … lab9/       后续阶段规划；实现时继承前一实验的完整基础
+├── scripts/check.py   自动构建、驱动 QEMU、收集各实验日志
+├── docs/              架构总览、本人记录和历史资料
+├── extras/host-shell/  早期宿主 Linux Shell 练习
+└── Makefile           实验运行与验证的导航入口
 ```
 
-旁边的 `../xv6-labs-2020/` 是参考实现，`../qemu-5.1.0/` 是模拟器源码。当前内核不链接它们的代码。
+Lab 2 包含它所需要的启动和打印基础；Lab 3 包含它所需要的启动和内存基础。这些文件按阶段保留，便于直接查看和比较，每个实验可以独立构建。内核源码不跨实验引用，也不使用 `#if LAB` 切换行为。
 
-## 历史与范围
+## 分别运行
 
-`LAB1_WORKLOG.md`、`docs/LAB1_REDESIGN.md` 保存先前 xv6 原型及逐步教学记录，其描述不代表本轮完成的最新源码。旧代码和 Git 状态快照在 `../archives/`。
+在仓库根目录执行，一次启动一个实验：
 
-本轮 Lab 1–3 在本地 `lab-3` 分支一次集成，使用 `LAB` 参数选择可运行阶段；`main` 保留原历史起点。该集成提交如实记录 Agent 辅助，不是三次独立完成实验的历史记录。
+```bash
+make -C lab1 qemu CPUS=3
+make -C lab2 qemu CPUS=3
+make -C lab3 qemu CPUS=3
+```
 
-尚无用户进程、系统调用、调度、磁盘或文件系统。本轮验证面向前三个实验，实体开发板适配需按后续课程要求另行完成。
+也可以 `cd lab1` 后执行 `make qemu`，Lab 2、3 同理。默认三核，`CPUS` 支持 1–8。编译产物分别存放在各实验的 `build/cpuN/`，不会混用。
 
-参考：[ECNU OSLab 2026 课程任务](https://gitee.com/christinaaa/ecnu-oslab-2026-task)、[RISC-V 特权架构](https://docs.riscv.org/reference/isa/priv/supervisor.html)、[SBI 定时器](https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/src/ext-time.adoc)、[SBI hart 管理](https://github.com/riscv-non-isa/riscv-sbi-doc/blob/master/src/ext-hsm.adoc)。
+进入 `pgos>` 后输入 `help` 查看**本实验**的命令，输入 `quit` 退出。这里是内核诊断台。用户进程、系统调用和文件系统属于后续实验。
+
+根目录单独执行 `make` 会显示使用方法。旧命令 `make qemu LAB=1 CPUS=3` 仍可用：根 Makefile 只转发到 `lab1/Makefile`，不在同一套源码中切换阶段。
+
+## 验证
+
+```bash
+make -C lab1 check          # 只检查 Lab 1 的 1、2、3、8 核
+make -C lab2 check          # 只检查 Lab 2
+make -C lab3 check          # 只检查 Lab 3
+make check                 # 检查三个实验全部 12 个配置
+```
+
+单一配置可用 `python3 scripts/check.py --lab 2 --cpus 3`。检查包含重新编译、ELF 入口、多核启动、自检、真实串口交互和正常退出；Lab 2 加入页池与 MMU 检查，Lab 3 加入每核时钟与串口中断计数。
+
+当前分目录版本的证据：
+
+- [Lab 1](lab1/docs/evidence/summary.txt)
+- [Lab 2](lab2/docs/evidence/summary.txt)
+- [Lab 3](lab3/docs/evidence/summary.txt)
+- [全部实验汇总](docs/evidence/lab123-split/summary.txt)
+- [仓库外独立构建记录](docs/evidence/lab123-split/standalone-build.txt)
+
+**2026-10-08 重整理后：12 个配置全部通过、0 个失败；三个实验分别复制到仓库外编译也全部通过。**
+
+支持环境为 QEMU `virt`、128 MiB RAM；已验证的工具为 QEMU 5.1.0、默认 OpenSBI 0.7、RISC-V GCC 13.3.0。Lab 1 自己完成 M→S 切换；Lab 2、3 由 OpenSBI 提供 S 模式入口。两个启动方式的加载地址与代码分别固定在各自目录。
+
+## 怎样理解和比较
+
+[系统架构](ARCHITECTURE.md)解释完整模块及未来接入边界；[前三个实验的阅读路线](docs/LAB123_DESIGN.md)对应当前源码；[开发约定](docs/DEVELOPMENT.md)说明后续阶段怎样接续。每个实验的 README 进一步解释具体架构和验收现象。
+
+小巧思也按阶段区分：Lab 1 的每核启动记录，Lab 2 的页归还检查与虚拟地址翻译窗口，Lab 3 的真实中断计数。它们用于观察内核实际状态。
+
+[本人实验记录](docs/MY_LAB_NOTES.md)保留真实操作与理解。本轮内核实现、分目录整理和自动验证由 Agent 完成，记录归属如实保留。
+
+早期原型与先前集成版本的说明放在 [历史资料](docs/history/README.md)。2026-10-05 的集成版本日志保存在 `docs/evidence/lab123/`；本次整理后的日志放在各实验内部。实验边界由目录表达；GitHub 的 `main` 首页用于整体框架和全阶段索引，`lab-3` 同步保存本次已验收的基础版本。
+
+参考：[ECNU 课程任务](https://gitee.com/christinaaa/ecnu-oslab-2026-task)。旁边的 `../xv6-labs-2020/` 用于参考，当前内核不链接其代码。

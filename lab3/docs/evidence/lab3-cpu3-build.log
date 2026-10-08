@@ -1,0 +1,9 @@
+$ make --no-print-directory -C lab3 CPUS=3
+
+mkdir -p build/cpu3/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=3 -c kernel/bootstate.c -o build/cpu3/kernel/bootstate.o
+mkdir -p build/cpu3/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=3 -c kernel/main.c -o build/cpu3/kernel/main.o
+mkdir -p build/cpu3/monitor/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=3 -c monitor/diagnostics.c -o build/cpu3/monitor/diagnostics.o
+riscv64-linux-gnu-ld -T linker.ld -o build/cpu3/kernel.elf build/cpu3/boot/entry.o build/cpu3/trap/entry.o build/cpu3/boot/dtb.o build/cpu3/boot/start.o build/cpu3/kernel/bootstate.o build/cpu3/kernel/main.o build/cpu3/kernel/spinlock.o build/cpu3/mm/page.o build/cpu3/mm/vm.o build/cpu3/trap/trap.o build/cpu3/drivers/platform.o build/cpu3/drivers/plic.o build/cpu3/drivers/uart.o build/cpu3/monitor/diagnostics.o build/cpu3/monitor/monitor.o build/cpu3/tests/selftest.o build/cpu3/lib/console.o build/cpu3/lib/memory.o build/cpu3/lib/sbi.o

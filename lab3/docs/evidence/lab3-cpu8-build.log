@@ -1,0 +1,41 @@
+$ make --no-print-directory -C lab3 CPUS=8
+
+mkdir -p build/cpu8/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c boot/entry.S -o build/cpu8/boot/entry.o
+mkdir -p build/cpu8/trap/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c trap/entry.S -o build/cpu8/trap/entry.o
+mkdir -p build/cpu8/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c boot/dtb.c -o build/cpu8/boot/dtb.o
+mkdir -p build/cpu8/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c boot/start.c -o build/cpu8/boot/start.o
+mkdir -p build/cpu8/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c kernel/bootstate.c -o build/cpu8/kernel/bootstate.o
+mkdir -p build/cpu8/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c kernel/main.c -o build/cpu8/kernel/main.o
+mkdir -p build/cpu8/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c kernel/spinlock.c -o build/cpu8/kernel/spinlock.o
+mkdir -p build/cpu8/mm/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c mm/page.c -o build/cpu8/mm/page.o
+mkdir -p build/cpu8/mm/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c mm/vm.c -o build/cpu8/mm/vm.o
+mkdir -p build/cpu8/trap/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c trap/trap.c -o build/cpu8/trap/trap.o
+mkdir -p build/cpu8/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c drivers/platform.c -o build/cpu8/drivers/platform.o
+mkdir -p build/cpu8/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c drivers/plic.c -o build/cpu8/drivers/plic.o
+mkdir -p build/cpu8/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c drivers/uart.c -o build/cpu8/drivers/uart.o
+mkdir -p build/cpu8/monitor/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c monitor/diagnostics.c -o build/cpu8/monitor/diagnostics.o
+mkdir -p build/cpu8/monitor/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c monitor/monitor.c -o build/cpu8/monitor/monitor.o
+mkdir -p build/cpu8/tests/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c tests/selftest.c -o build/cpu8/tests/selftest.o
+mkdir -p build/cpu8/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c lib/console.c -o build/cpu8/lib/console.o
+mkdir -p build/cpu8/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c lib/memory.c -o build/cpu8/lib/memory.o
+mkdir -p build/cpu8/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c lib/sbi.c -o build/cpu8/lib/sbi.o
+riscv64-linux-gnu-ld -T linker.ld -o build/cpu8/kernel.elf build/cpu8/boot/entry.o build/cpu8/trap/entry.o build/cpu8/boot/dtb.o build/cpu8/boot/start.o build/cpu8/kernel/bootstate.o build/cpu8/kernel/main.o build/cpu8/kernel/spinlock.o build/cpu8/mm/page.o build/cpu8/mm/vm.o build/cpu8/trap/trap.o build/cpu8/drivers/platform.o build/cpu8/drivers/plic.o build/cpu8/drivers/uart.o build/cpu8/monitor/diagnostics.o build/cpu8/monitor/monitor.o build/cpu8/tests/selftest.o build/cpu8/lib/console.o build/cpu8/lib/memory.o build/cpu8/lib/sbi.o

@@ -1,0 +1,31 @@
+Agent-run runtime verification. Started at 2026-10-08T09:49:22.665049+00:00
+Independent sources: lab1/, lab2/, lab3/.
+Monitor is S-mode kernel code, not a user shell.
+
+
+PASS Lab 2, CPUs=1
+  - ELF/entry + every hart ready + independent 4 KiB stacks + per-hart satp
+  - formatter built-in boundary tests
+  - allocator+Sv39+actual CPU alias tests; repeat restores both pools; mapping permissions
+  - UART CRLF/LF/backspace/DEL; 127-character boundary; overflow discard+recovery
+  - quit shuts down QEMU with exit status 0
+PASS Lab 2, CPUs=2
+  - ELF/entry + every hart ready + independent 4 KiB stacks + per-hart satp
+  - formatter built-in boundary tests
+  - allocator+Sv39+actual CPU alias tests; repeat restores both pools; mapping permissions
+  - UART CRLF/LF/backspace/DEL; 127-character boundary; overflow discard+recovery
+  - quit shuts down QEMU with exit status 0
+PASS Lab 2, CPUs=3
+  - ELF/entry + every hart ready + independent 4 KiB stacks + per-hart satp
+  - formatter built-in boundary tests
+  - allocator+Sv39+actual CPU alias tests; repeat restores both pools; mapping permissions
+  - UART CRLF/LF/backspace/DEL; 127-character boundary; overflow discard+recovery
+  - quit shuts down QEMU with exit status 0
+PASS Lab 2, CPUs=8
+  - ELF/entry + every hart ready + independent 4 KiB stacks + per-hart satp
+  - formatter built-in boundary tests
+  - allocator+Sv39+actual CPU alias tests; repeat restores both pools; mapping permissions
+  - UART CRLF/LF/backspace/DEL; 127-character boundary; overflow discard+recovery
+  - quit shuts down QEMU with exit status 0
+
+Results: 4 passed, 0 failed.

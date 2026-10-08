@@ -11,4 +11,5 @@ user/initcode.out
 build/
 kernel.elf
 shell/shell
+extras/host-shell/shell
 __pycache__/

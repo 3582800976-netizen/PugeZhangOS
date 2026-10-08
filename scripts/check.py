@@ -3,6 +3,7 @@
 
 Only the Python standard library and the existing RISC-V/QEMU tools are used.
 The monitor runs inside the kernel; it is not a user process or a Unix shell.
+Each lab is built from its own directory, without a shared LAB-selected kernel.
 Every invocation replaces its own evidence files with this invocation's results.
 """
 
@@ -143,7 +144,7 @@ class Machine:
 
 
 def build(lab: int, cpus: int, directory: Path) -> Path:
-    argv = ["make", "--no-print-directory", f"LAB={lab}", f"CPUS={cpus}"]
+    argv = ["make", "--no-print-directory", "-C", f"lab{lab}", f"CPUS={cpus}"]
     result = subprocess.run(
         argv, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120
     )
@@ -151,7 +152,7 @@ def build(lab: int, cpus: int, directory: Path) -> Path:
         ("$ " + shlex.join(argv) + "\n\n").encode() + result.stdout
     )
     require(result.returncode == 0, f"build failed:\n{readable(result.stdout)}")
-    return ROOT / "build" / f"lab{lab}-cpu{cpus}" / "kernel.elf"
+    return ROOT / f"lab{lab}" / "build" / f"cpu{cpus}" / "kernel.elf"
 
 
 def check_elf(kernel: Path, lab: int, toolprefix: str, directory: Path) -> None:
@@ -277,7 +278,12 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
             passed.append(f"all {cpus * 4} concurrent UART messages intact")
 
         help_reply = machine.command("help")
-        require(all(name in help_reply for name in ("boot", "mem", "vm", "ticks", "irq", "test", "echo", "quit")),
+        commands = ["boot", "test", "echo", "quit"]
+        if lab >= 2:
+            commands += ["mem", "vm"]
+        if lab == 3:
+            commands += ["ticks", "irq"]
+        require(all(name in help_reply for name in commands),
                 "help omits supported diagnostic commands")
         tests = machine.command("test", timeout=15)
         require("[test] format PASS" in tests, f"format boundary tests missing:\n{tests}")
@@ -357,7 +363,8 @@ def main() -> int:
     parser.add_argument("--qemu", default=os.environ.get("QEMU", "qemu-system-riscv64"))
     parser.add_argument("--toolprefix", default=os.environ.get("TOOLPREFIX", "riscv64-linux-gnu-"))
     parser.add_argument("--no-build", action="store_true", help="exercise existing build outputs")
-    parser.add_argument("--evidence", type=Path, default=ROOT / "docs" / "evidence" / "lab123")
+    parser.add_argument("--evidence", type=Path,
+                        help="optional evidence root; defaults to each lab's docs/evidence/")
     args = parser.parse_args()
     try:
         cpus = list(dict.fromkeys(int(count) for count in args.cpus.split(",")))
@@ -366,34 +373,46 @@ def main() -> int:
     if not cpus or any(count < 1 or count > 8 for count in cpus):
         parser.error("CPU counts must be from 1 to 8")
     labs = [1, 2, 3] if args.lab == "all" else [int(args.lab)]
-    args.evidence.mkdir(parents=True, exist_ok=True)
+    summary_directory = args.evidence or ROOT / "docs" / "evidence" / "lab123-split"
+    summary_directory.mkdir(parents=True, exist_ok=True)
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
     summary = [f"Agent-run runtime verification. Started at {started}",
+               "Independent sources: lab1/, lab2/, lab3/.",
                "Monitor is S-mode kernel code, not a user shell.", ""]
     failures = 0
     try:
         for lab in labs:
+            directory = (args.evidence / f"lab{lab}" if args.evidence else
+                         ROOT / f"lab{lab}" / "docs" / "evidence")
+            directory.mkdir(parents=True, exist_ok=True)
+            lab_summary = summary[:4] + [""]
+            lab_failures = 0
             for count in cpus:
                 name = f"Lab {lab}, CPUs={count}"
                 print(f"Checking {name} ...", flush=True)
                 try:
-                    kernel = ROOT / "build" / f"lab{lab}-cpu{count}" / "kernel.elf"
+                    kernel = ROOT / f"lab{lab}" / "build" / f"cpu{count}" / "kernel.elf"
                     if not args.no_build:
-                        kernel = build(lab, count, args.evidence)
+                        kernel = build(lab, count, directory)
                     require(kernel.is_file(), f"kernel missing: {kernel}")
-                    check_elf(kernel, lab, args.toolprefix, args.evidence)
-                    checks = exercise(lab, count, args.qemu, kernel, args.evidence)
-                    summary.append(f"PASS {name}")
-                    summary.extend("  - " + check for check in checks)
+                    check_elf(kernel, lab, args.toolprefix, directory)
+                    checks = exercise(lab, count, args.qemu, kernel, directory)
+                    records = [f"PASS {name}"] + ["  - " + check for check in checks]
+                    summary.extend(records)
+                    lab_summary.extend(records)
                     print(f"PASS {name} ({len(checks)} groups)", flush=True)
                 except (CheckFailure, OSError, subprocess.TimeoutExpired) as error:
                     failures += 1
+                    lab_failures += 1
                     summary.append(f"FAIL {name}: {error}")
+                    lab_summary.append(f"FAIL {name}: {error}")
                     print(f"FAIL {name}: {error}", flush=True)
+            lab_summary.extend(["", f"Results: {len(cpus) - lab_failures} passed, {lab_failures} failed."])
+            (directory / "summary.txt").write_text("\n".join(lab_summary) + "\n", encoding="utf-8")
     finally:
         summary.extend(["", f"Results: {len(labs) * len(cpus) - failures} passed, {failures} failed."])
-        (args.evidence / "summary.txt").write_text("\n".join(summary) + "\n", encoding="utf-8")
-    print(f"Evidence: {args.evidence / 'summary.txt'}", flush=True)
+        (summary_directory / "summary.txt").write_text("\n".join(summary) + "\n", encoding="utf-8")
+    print(f"Evidence: {summary_directory / 'summary.txt'}", flush=True)
     return 1 if failures else 0
 
 
