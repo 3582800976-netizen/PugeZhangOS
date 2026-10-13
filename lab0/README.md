@@ -15,6 +15,8 @@ Lab 0 的目标是确认工具能工作，并分清宿主 Linux、QEMU 和 xv6�
 
 2026-10-04 的 Agent 独立构建与运行验证记录：[构建](docs/evidence/build.log)、[运行](docs/evidence/runtime.log)。GDB 实际连接和实体开发板运行尚未在该次验证中检查。
 
+课程开发板、SSH 与环境配置教程已下载到 [环境参考资料](docs/reference/README.md)。准备 VisionFive 2 先阅读 [vf2.docx](docs/reference/vf2.docx)；下载教程不等于已经完成开发板启动。
+
 ## 再次运行
 
 ```bash
