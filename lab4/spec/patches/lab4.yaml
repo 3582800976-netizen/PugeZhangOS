@@ -1,0 +1,47 @@
+lab: 4
+goal: 真实首个用户进程、可去可回、错误隔离、可重复验证
+requires:
+- Lab3 boot/locks/UART/PLIC/timer/page/Sv39
+changes:
+  kernel: 在 vm_init 后初始化固定进程槽；仍由原有模块负责启动和诊断
+  memory: 增加用户根页表与 U 权限、安全 copyin
+  process: PCB、首次 context、执行/结束/回收
+  trap: 共享 trampoline 与 U/S 双入口
+  user: 独立链接的 C 程序和寄存器往返探针
+  monitor: user、utest、proc；监控台仍是 S 模式
+acceptance:
+- scenario: 真实用户执行
+  input: user / mode 0
+  expected:
+  - U 来源记录、pid 正确
+  - GETPID/WRITE/REPORT/EXIT 往返
+  - sum(1..100)=5050，退出0
+  - 用户 tp canary 和 ecall 前后寄存器保持
+  - 实际 U 模式 timer 至少一次
+- scenario: 受保护地址
+  input: mode 1..6：内核/UART/code-store/stack-exec/tf/trampoline
+  expected:
+  - cause 分别13/13/15/12/13/13
+  - 对应 sepc/stval 与 U 来源记录
+  - 只结束进程，随后仍能 echo 和运行正常进程
+- scenario: 坏系统调用
+  input: 空地址、地址加长溢出、跨无映射页、S-only地址、未知编号
+  expected:
+  - 错误码准确，串口无部分输出，内核不崩溃
+- scenario: 资源回收
+  input: 多轮所有模式
+  expected:
+  - kernel/user 页池空闲数回到初始化后基线
+- scenario: 分配失败
+  input: user_vm_create budget 0..7；budget8成功
+  expected:
+  - 每个失败点回滚；所有池空闲数恢复；借用页仍有效
+- scenario: 原有能力
+  input: CPUS1/2/3/8 及 Lab1–3 回归
+  expected:
+  - 原有内存、权限、时钟、UART和控制台检查继续通过
+- scenario: 独立构建
+  input: Lab4目录复制出仓库后make
+  expected:
+  - 构建不读前一Lab源码；用户和内核映像均独立生成
+authorship: 本轮规格与实现由 Agent 起草；本人尚需说明三个关键函数契约并亲手运行，不补造个人记录

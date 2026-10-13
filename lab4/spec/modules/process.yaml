@@ -1,0 +1,47 @@
+module: single user process
+owns:
+- proc/process.c
+- include/process.h
+- PCB、永久 tf/kstack、当前进程和返回诊断台的 context
+state:
+- PCB：pid/pgtbl/heap_top/ustack_pages/tf/kstack/ctx
+- process_result：退出状态、真实 U 来源、cause/epc/stval、report、调用与中断计数
+rules:
+- 只在 boot leader 上运行，单槽不能同时重入
+- 永久 tf/kstack 共两个内核页；用户 VM 在每次 run 后回收
+- 不在持锁或 irq_push 未配对时切换 context
+- result 记录真实现场；打印启动卡不替代 U 模式执行证据
+functions:
+  process_init:
+    pre:
+    - vm_init 完成；全局状态尚未发布
+    effects:
+    - 分配并永久保留一个 tf 页和一个内核栈页
+    - 把 trampoline/tf/kstack 映射到内核高地址
+    post:
+    - 首个进程的借用基础可用；失败 panic，不继续发布启动就绪
+  process_run:
+    pre:
+    - 调用者是拥有者核心，在内核页表/栈上，无运行中的用户进程
+    effects:
+    - 创建用户空间，填写 PCB 与首次 context
+    - 以 ctx.ra 进入首次返回路径、用 sret 执行用户程序
+    - 用户退出或故障后切回调用者 context，销毁用户 VM
+    post:
+    - 返回真实 process_result，诊断台能继续
+    - 临时页数回到运行前基线，中断状态恢复
+    - 创建失败没有部分 PCB 或页表遗留
+  process_finish:
+    pre:
+    - 正处理当前进程的 U 陷入，已恢复内核页表与可信 tp，SIE=0，无持锁
+    effects:
+    - 保存退出或故障结果，切回 process_run 调用者
+    post:
+    - 不返回当前用户陷入函数，不恢复已结束程序
+  process_get_result:
+    pre:
+    - out 非空
+    effects:
+    - 复制最近一次运行结果
+    post:
+    - 无结果时返回无结果；不外露可修改的 PCB

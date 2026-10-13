@@ -1,0 +1,55 @@
+module: user virtual memory
+owns:
+- mm/user_vm.c
+- include/user_vm.h
+- mm/vm.c 的内核新增映射入口
+state:
+- 每次创建持有 root/code/data/stack 的物理地址；页表页来自 PAGE_KERNEL，用户内容页来自 PAGE_USER
+- tf/kstack/trampoline 为借用映射；销毁用户地址空间不得释放它们
+rules:
+- 不接受 RWX 用户映射
+- create 失败全部回滚，out 清零
+- 只释放自己分配的页表，不遍历释放借用叶页
+- copyin 先验证整个区间，再复制；坏第二页不得修改目标缓冲区
+functions:
+  vm_map_kernel:
+    pre:
+    - 只在 vm_init 后、其他核心使用页表前调用
+    - VA/PA 按页对齐，权限不含 U
+    effects:
+    - 为内核页表增加固定进程槽映射
+    post:
+    - 成功映射准确权限；失败返回错误且启动停止
+  user_vm_create:
+    pre:
+    - out 为空，页分配器可用
+    - code 非空且 0<size<=4096；data 大小<=4096，非零时指针非空
+    - tf/kstack 是对齐且位于内核池的借用页；budget=-1 或非负
+    effects:
+    - 申请三个用户页、根页表与必要中间表
+    - 复制代码和初始化数据；用户数据剩余及用户栈保持零
+    - 建立代码/数据/栈与三类 S-only 映射；budget 限制本次分配次数以测试失败路径
+    post:
+    - 成功获得独立 root，零页/内核/UART/guard 无用户映射
+    - 失败不遗留自有物理页和页表，两个池空闲数恢复，out 清零
+  user_vm_destroy:
+    pre:
+    - 该 root 已不在任何核心 satp 中使用
+    effects:
+    - 释放用户 code/data/stack 及全部自有页表页
+    post:
+    - out 清零；借用内核资源仍有效；重复调用空对象无副作用
+  user_vm_copyin:
+    pre:
+    - 内核页表启用；dst 是可信内核缓冲区且容量足够
+    effects:
+    - 逐页检查 canonical 范围、整数溢出和 U/R 权限，验证后按物理地址复制
+    post:
+    - 成功取得完整字节；失败 dst 未变；len=0 不访问任何指针
+  user_vm_lookup:
+    pre:
+    - 指定空间有效，out 可空
+    effects:
+    - 查询该空间的三级页表
+    post:
+    - 返回真实物理地址与权限，未映射或异常地址返回错误

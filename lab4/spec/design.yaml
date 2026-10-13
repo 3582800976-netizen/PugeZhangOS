@@ -1,0 +1,54 @@
+system:
+  name: PugeZhangOS Lab 4
+  goal: 在继承 Lab 3 的完整内核中，真实运行首个 U 模式进程并安全返回
+  scope: 单进程、单执行拥有者；CPUS=1/2/3/8 均可启动；其余核心维持内核中断
+provenance:
+  source: 课程 Lab 4 PPT 第 4–9 页
+  origin: 本项目 Agent 起草的规格，不是课程原件
+  date: 2026-10-13 Asia/Shanghai
+  student_contract_review: 待本人解释和完善，不声称已完成本人设计
+  implementation_author: Agent-assisted
+machine:
+  board: QEMU virt
+  firmware: default OpenSBI，内核 S 模式入口
+  memory:
+    ram: 0x80000000..0x88000000
+    kernel_base: '0x80200000'
+    page_size: 4096
+    firmware_and_dtb: 沿用 Lab 3 的保留规则
+  harts:
+    owner: boot leader
+    others: 只处理内核中断，不执行用户进程
+  physical_board: 暂缓；这些硬件常量不构成 VisionFive 2 适配
+mechanisms:
+  paging: Sv39；每个进程独立页表，内核原有 identity 映射无 U 权限
+  context: 保存内核 ra/sp/s0..s11，用于首次进入和退出返回诊断台
+  trapframe: 保存用户全部整数寄存器、sepc/sstatus及可信内核返回元数据
+  trampoline: 一页只读可执行代码，以相同高 VA 映射到内核和用户页表，均无 U
+  return: sret 才完成 S→U；ecall/异常/中断执行 U→S 入口
+layout:
+  va_max: 1 << 38
+  null_page: 不映射
+  code: 0x1000，一页 RXU，含只读常量
+  data: 0x2000，一页 RWU，含零初始化 BSS
+  heap_top: 0x3000；此阶段不增长堆
+  trampoline: VA_MAX-4096，RX，无 U
+  trapframe: VA_MAX-8192，RW，无 U
+  user_stack: VA_MAX-12288，一页 RWU、不可执行
+  stack_guard: VA_MAX-16384，不映射
+  kernel_stack: VA_MAX-20480，一页 RW，无 U
+rules:
+- 用户 tp 不作为可信 hart ID；陷入后从只对 S 可见的 trapframe 恢复内核 tp
+- 用户无法直接访问内核、UART、trapframe 和 trampoline；打印必须经受检查的 WRITE
+- 非法用户访问结束该进程并记录 cause/epc/stval，内核继续运行；此为 Agent 暂定规则，已向本人讲解
+- 内核自身意外异常继续使用原有 panic，不能把内核错误掩盖成用户错误
+- 用户异常不能猜测 PC+4；只对明确的 4 字节 ecall 推进 sepc
+- 运行结束后归还进程拥有的用户页及页表；两个永久内核页只在初始化时保留
+- 进入 trampoline 至切换回可信内核环境期间关闭 S 中断；不用用户栈运行内核 C
+- 新增映射在全局启动状态发布前完成；只有拥有者使用固定进程槽
+non_goals:
+- 多进程调度/fork/exec
+- 文件系统和用户 Shell
+- 动态堆增长
+- 实体开发板运行
+- 冒充本人完成函数契约或手动操作

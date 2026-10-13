@@ -1,0 +1,47 @@
+module: user entry and return
+owns:
+- trap/user_entry.S
+- trap/user_trap.c
+- trap/context.S
+- include/user_frame.h
+state:
+  frame: x[32], epc, status, kernel_satp, kernel_sp, kernel_handler, kernel_hartid
+  context: ra, sp, s0..s11
+rules:
+- 完整保存并恢复所有用户整数寄存器；a0 仅按系统调用返回规则改动
+- sscratch 保存 S-only trapframe VA，不能信任用户 sp/tp
+- 同一 trampoline VA 在切换前后均可执行
+- 只有用户 ecall 推进 PC；中断返回同一 sepc
+- SSTATUS.SPP=0、SUM=0、MXR=0；SPIE=1；进入 U 前 SIE=0
+functions:
+  context_switch:
+    pre:
+    - from/to 是可信内核 context，SIE=0，栈16字节对齐
+    effects:
+    - 保存 from 的 ra/sp/s0..s11，恢复 to 并 ret
+    post:
+    - 执行到 to.ra；不直接完成权限或页表切换
+  user_vector:
+    pre:
+    - 由 U 模式陷入，sscratch 指向已映射的受保护 frame
+    effects:
+    - 保存用户寄存器及 epc/status
+    - 从 frame 取得内核 satp/sp/tp/handler，切换页表并刷新 TLB
+    post:
+    - 用安全内核栈和可信 hart ID 进入 C handler，用户现场完整
+  user_trap:
+    pre:
+    - 内核页表/栈可用，真实陷入来源 SPP=0，当前进程有效
+    effects:
+    - 设置内核 trap 入口；分发 timer/PLIC/ecall/用户错误
+    - 记录 U 中断与系统调用证据
+    post:
+    - 普通中断继续用户原 PC；调用按 ABI 返回；错误终止进程，内核仍可运行
+  trap_user_return:
+    pre:
+    - 当前进程有效，内核态且 SIE=0，返回元数据有效
+    effects:
+    - 更新 trusted kernel 字段、stvec、sepc 和 sstatus
+    - 通过共享 trampoline 切 user satp、刷新 TLB/指令缓存并恢复用户现场
+    post:
+    - sret 进入 U，使用用户 PC/栈；不会作为普通 C 函数返回

@@ -1,0 +1,32 @@
+module: minimal calls
+owns:
+- syscall/dispatch.c
+- include/syscall.h
+- user 调用封装
+state:
+  abi: a7 编号；a0..a2 参数；a0 返回有符号结果
+  calls:
+    '1': GETPID
+    '2': WRITE
+    '3': REPORT
+    '4': EXIT
+    '5': TICKS
+  errors:
+    bad_user_pointer: -14
+    invalid_length: -22
+    unknown_call: -38
+rules:
+- 这些编号是本项目自定的最小演示集合，不冒充课程提供规格
+- WRITE 最多128字节，先验证完整用户范围，拒绝时无串口输出
+- 用户不能自行设置 trusted kernel 元数据
+- REPORT 保留用户计算值供内核比较；通过实际 U ecall 才接受
+functions:
+  syscall_dispatch:
+    pre:
+    - 确认 U 来源 ecall，frame 和当前进程有效
+    effects:
+    - 按 a7 调用 GETPID/WRITE/REPORT/EXIT/TICKS
+    - 返回 a0，其他用户寄存器保持
+    - 未知编号返回 -38，不 panic
+    post:
+    - 正常调用继续执行下一条用户指令；EXIT 结束当前进程；坏指针返回 -14，内核状态完整
