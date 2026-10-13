@@ -1,4 +1,4 @@
-Agent-run UART observation, started 2026-10-08T10:13:41.290375+00:00
+Agent-run UART observation, started 2026-10-13T13:27:02.152656+00:00
 $ qemu-system-riscv64 -machine virt -bios default -kernel /home/zpg/Work/PugeZhang/lab2/build/cpu3/kernel.elf -m 128M -smp 3 -nographic -monitor none
 
 

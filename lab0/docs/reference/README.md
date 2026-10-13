@@ -10,7 +10,7 @@
 
 开发板准备先看 `vf2.docx`；它适用于 VisionFive 2，需核对实际板型后使用其接线与镜像说明。Windows PowerShell、WSL Ubuntu、开发板上的 Ubuntu 是三个不同的命令环境，教程中的命令要在对应环境执行。
 
-本次下载和电脑端检查由 Agent 完成，尚未取得开发板开机日志，也没有写入 SD 卡或完成上板验收。开发机为 WSL2、Ubuntu 24.04.4；随后检查已确认 `minicom` 与 `lsusb` 可用，USB 串口尚未出现在 WSL。Windows 端正在准备 USB 转发工具，实际连接与上板结果以设备识别和开机日志为准。
+本次下载和电脑端检查由 Agent 完成，尚未取得开发板开机日志，也没有写入 SD 卡或完成上板验收。开发机为 WSL2、Ubuntu 24.04.4；随后检查已确认 `minicom` 与 `lsusb` 可用，USB 串口尚未出现在 WSL。Windows 端已安装 usbipd-win 5.3.0，服务正常；尚未识别到 CH340。开发板配置按本人要求暂缓，实际连接与上板结果以设备识别和开机日志为准。
 
 | 文件 | 字节数 | Git blob SHA-1 |
 | --- | --- | --- |

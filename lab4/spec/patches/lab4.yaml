@@ -17,7 +17,7 @@ acceptance:
   - GETPID/WRITE/REPORT/EXIT 往返
   - sum(1..100)=5050，退出0
   - 用户 tp canary 和 ecall 前后寄存器保持
-  - 实际 U 模式 timer 至少一次
+  - 实际 U 模式 timer 至少三次
 - scenario: 受保护地址
   input: mode 1..6：内核/UART/code-store/stack-exec/tf/trampoline
   expected:
@@ -44,4 +44,10 @@ acceptance:
   input: Lab4目录复制出仓库后make
   expected:
   - 构建不读前一Lab源码；用户和内核映像均独立生成
+- scenario: 用户运行中的串口中断
+  input: 正常程序输出后，仍在 U 执行窗口时注入串口命令
+  expected:
+  - 拥有者的 user_external_interrupts 大于零
+  - 用户计算和寄存器现场正确
+  - 退出后诊断台执行排队命令，输入不丢失
 authorship: 本轮规格与实现由 Agent 起草；本人尚需说明三个关键函数契约并亲手运行，不补造个人记录

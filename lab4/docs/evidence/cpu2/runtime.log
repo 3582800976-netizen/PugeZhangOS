@@ -1,0 +1,420 @@
+Agent-run UART observation, started 2026-10-13T13:32:46.455141+00:00
+$ qemu-system-riscv64 -machine virt -bios default -kernel /home/zpg/Work/PugeZhang/lab4/build/cpu2/kernel.elf -m 128M -smp 2 -nographic -monitor none
+
+
+OpenSBI v0.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name          : QEMU Virt Machine
+Platform HART Features : RV64ACDFIMSU
+Current Hart           : 0
+Firmware Base          : 0x80000000
+Firmware Size          : 128 KB
+Runtime SBI Version    : 0.2
+
+MIDELEG : 0x0000000000000222
+MEDELEG : 0x000000000000b109
+PMP0    : 0x0000000080000000-0x000000008001ffff (A)
+PMP1    : 0x0000000000000000-0xffffffffffffffff (A,R,W,X)
+
+PugeZhangOS: Lab 4, 2 harts, boot hart 0
+[firmware] OpenSBI DTB=0x82200000 bytes=4278 preserved
+[firmware] HSM started=1
+[uart-test] hart=0 seq=0
+[uart-test] hart=0 seq=1
+[uart-test] hart=0 seq=2
+[uart-test] hart=0 seq=3
+[uart-test] hart=1 seq=0
+[uart-test] hart=1 seq=1
+[uart-test] hart=1 seq=2
+[uart-test] hart=1 seq=3
+[boot] hart=0 stages=0x7f ready=1 stack=0x80211000..0x80212000 satp=0x8000000000080214
+[boot] hart=1 stages=0x77 ready=1 stack=0x80210000..0x80211000 satp=0x8000000000080214
+[test] page-concurrent PASS
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=0 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=0 range=0x84108000..0x88000000
+[test] format PASS
+[PASS] lab2 page kernel uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page user uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page reject kernel image address
+[PASS] lab2 page reject invalid pool
+[PASS] lab2 page reject one-past-RAM address
+[PASS] lab2 page preserve firmware DTB
+[test] page PASS
+[PASS] lab2 vm UART identity RW
+[PASS] lab2 vm shutdown syscon identity RW
+[PASS] lab2 vm PLIC identity RW
+[PASS] lab2 vm kernel text identity RX
+[PASS] lab2 vm last text page RX
+[PASS] lab2 vm kernel rodata identity R
+[PASS] lab2 vm kernel data identity RW
+[PASS] lab2 vm root table identity RW
+[PASS] lab2 vm last RAM byte identity RW
+[PASS] lab2 vm OpenSBI excluded
+[PASS] lab2 vm CLINT excluded
+[PASS] lab2 vm address zero unmapped
+[PASS] lab2 vm beyond RAM unmapped
+[PASS] lab2 vm reject noncanonical bit 38
+[PASS] lab2 vm reject noncanonical high bits
+[PASS] lab2 vm canonical upper half accepted
+[PASS] lab2 vm reject write-only leaf
+[PASS] lab2 vm reject unaligned mapping
+[PASS] lab2 vm reject duplicate mapping
+[PASS] lab2 vm diagnostic alias points to dedicated frame
+[PASS] lab2 vm hardware MMU is Sv39
+[PASS] lab2 vm hardware alias write visible at PA
+[PASS] lab2 vm hardware PA write visible at alias
+[PASS] lab2 vm hardware zero-page load rejected
+[PASS] lab2 vm hardware firmware load rejected
+[PASS] lab2 vm hardware text write rejected
+[PASS] lab2 vm hardware rodata write rejected
+[test] vm PASS
+[test] trap PASS
+[test] summary failures=0
+[ready] lab=4 cpus=2 leader=0
+pgos> boot
+[boot] hart=0 stages=0x7f ready=1 stack=0x80211000..0x80212000 satp=0x8000000000080214
+[boot] hart=1 stages=0x77 ready=1 stack=0x80210000..0x80211000 satp=0x8000000000080214
+pgos> help
+Commands: help boot mem vm [hex-address] ticks irq test user [0..7] utest proc echo <text> quit
+S-mode kernel monitor; user launches a separate U-mode process. Lab 4, CPUS=2
+pgos> test
+[test] format PASS
+[PASS] lab2 page kernel uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page user uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page reject kernel image address
+[PASS] lab2 page reject invalid pool
+[PASS] lab2 page reject one-past-RAM address
+[PASS] lab2 page preserve firmware DTB
+[test] page PASS
+[PASS] lab2 vm UART identity RW
+[PASS] lab2 vm shutdown syscon identity RW
+[PASS] lab2 vm PLIC identity RW
+[PASS] lab2 vm kernel text identity RX
+[PASS] lab2 vm last text page RX
+[PASS] lab2 vm kernel rodata identity R
+[PASS] lab2 vm kernel data identity RW
+[PASS] lab2 vm root table identity RW
+[PASS] lab2 vm last RAM byte identity RW
+[PASS] lab2 vm OpenSBI excluded
+[PASS] lab2 vm CLINT excluded
+[PASS] lab2 vm address zero unmapped
+[PASS] lab2 vm beyond RAM unmapped
+[PASS] lab2 vm reject noncanonical bit 38
+[PASS] lab2 vm reject noncanonical high bits
+[PASS] lab2 vm canonical upper half accepted
+[PASS] lab2 vm reject write-only leaf
+[PASS] lab2 vm reject unaligned mapping
+[PASS] lab2 vm reject duplicate mapping
+[PASS] lab2 vm diagnostic alias points to dedicated frame
+[PASS] lab2 vm hardware MMU is Sv39
+[PASS] lab2 vm hardware alias write visible at PA
+[PASS] lab2 vm hardware PA write visible at alias
+[PASS] lab2 vm hardware zero-page load rejected
+[PASS] lab2 vm hardware firmware load rejected
+[PASS] lab2 vm hardware text write rejected
+[PASS] lab2 vm hardware rodata write rejected
+[test] vm PASS
+[test] trap PASS
+[test] summary failures=0
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=10 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=8 range=0x84108000..0x88000000
+pgos> test
+[test] format PASS
+[PASS] lab2 page kernel uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page user uniqueness/alignment
+[PASS] lab2 page zero-on-allocation and independent contents
+[PASS] lab2 page reject wrong pool
+[PASS] lab2 page reject misaligned address
+[PASS] lab2 page release all allocated pages
+[PASS] lab2 page reject double free
+[PASS] lab2 page reuse released page
+[PASS] lab2 page free count restored
+[PASS] lab2 page reject kernel image address
+[PASS] lab2 page reject invalid pool
+[PASS] lab2 page reject one-past-RAM address
+[PASS] lab2 page preserve firmware DTB
+[test] page PASS
+[PASS] lab2 vm UART identity RW
+[PASS] lab2 vm shutdown syscon identity RW
+[PASS] lab2 vm PLIC identity RW
+[PASS] lab2 vm kernel text identity RX
+[PASS] lab2 vm last text page RX
+[PASS] lab2 vm kernel rodata identity R
+[PASS] lab2 vm kernel data identity RW
+[PASS] lab2 vm root table identity RW
+[PASS] lab2 vm last RAM byte identity RW
+[PASS] lab2 vm OpenSBI excluded
+[PASS] lab2 vm CLINT excluded
+[PASS] lab2 vm address zero unmapped
+[PASS] lab2 vm beyond RAM unmapped
+[PASS] lab2 vm reject noncanonical bit 38
+[PASS] lab2 vm reject noncanonical high bits
+[PASS] lab2 vm canonical upper half accepted
+[PASS] lab2 vm reject write-only leaf
+[PASS] lab2 vm reject unaligned mapping
+[PASS] lab2 vm reject duplicate mapping
+[PASS] lab2 vm diagnostic alias points to dedicated frame
+[PASS] lab2 vm hardware MMU is Sv39
+[PASS] lab2 vm hardware alias write visible at PA
+[PASS] lab2 vm hardware PA write visible at alias
+[PASS] lab2 vm hardware zero-page load rejected
+[PASS] lab2 vm hardware firmware load rejected
+[PASS] lab2 vm hardware text write rejected
+[PASS] lab2 vm hardware rodata write rejected
+[test] vm PASS
+[test] trap PASS
+[test] summary failures=0
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> vm
+[vm] UART va=0x10000000 pa=0x10000000 perms=RW vpn=0/128/0 level=0 pte=0x40000c7
+[vm] PLIC va=0xc000000 pa=0xc000000 perms=RW vpn=0/96/0 level=0 pte=0x30000c7
+[vm] TEXT va=0x80200000 pa=0x80200000 perms=RX vpn=2/1/0 level=0 pte=0x2008004b
+[vm] RODATA va=0x80207000 pa=0x80207000 perms=R vpn=2/1/7 level=0 pte=0x20081c43
+[vm] DATA va=0x80209000 pa=0x80209000 perms=RW vpn=2/1/9 level=0 pte=0x200824c7
+[vm] ALIAS va=0x40000000 pa=0x80278000 perms=RW vpn=1/0/0 level=0 pte=0x2009e0c7
+[vm] FIRMWARE va=0x80000000 unmapped
+[vm] CLINT va=0x2000000 unmapped
+pgos> ticks
+[ticks] hart=0 count=38
+[ticks] hart=1 count=38
+pgos> ticks
+[ticks] hart=0 count=77
+[ticks] hart=1 count=77
+pgos> irq
+[irq] uart_rx=47 bytes=47 dropped=0
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 0
+[user-start] pid=1 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+hello from U-mode
+[proc] pid=1 mode=0 origin=U reason=exit status=0 report=5050 calls=13848 user_ticks=30 user_irqs=0
+pgos> echo USER_0_RETURNED
+[echo] USER_0_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 1
+[user-start] pid=2 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[proc] pid=2 mode=1 origin=U reason=fault status=-1 report=0 calls=0 user_ticks=0 user_irqs=0
+[proc-fault] scause=0xd sepc=0x1152 stval=0x80200000
+pgos> echo USER_1_RETURNED
+[echo] USER_1_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 2
+[user-start] pid=3 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[proc] pid=3 mode=2 origin=U reason=fault status=-1 report=0 calls=0 user_ticks=0 user_irqs=0
+[proc-fault] scause=0xd sepc=0x1210 stval=0x10000000
+pgos> echo USER_2_RETURNED
+[echo] USER_2_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 3
+[user-start] pid=4 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[proc] pid=4 mode=3 origin=U reason=fault status=-1 report=0 calls=0 user_ticks=0 user_irqs=0
+[proc-fault] scause=0xf sepc=0x121c stval=0x1000
+pgos> echo USER_3_RETURNED
+[echo] USER_3_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 4
+[user-start] pid=5 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[proc] pid=5 mode=4 origin=U reason=fault status=-1 report=0 calls=0 user_ticks=0 user_irqs=0
+[proc-fault] scause=0xc sepc=0x3fffffd000 stval=0x3fffffd000
+pgos> echo USER_4_RETURNED
+[echo] USER_4_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 5
+[user-start] pid=6 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[proc] pid=6 mode=5 origin=U reason=fault status=-1 report=0 calls=0 user_ticks=0 user_irqs=0
+[proc-fault] scause=0xd sepc=0x123e stval=0x3fffffe000
+pgos> echo USER_5_RETURNED
+[echo] USER_5_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 6
+[user-start] pid=7 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[proc] pid=7 mode=6 origin=U reason=fault status=-1 report=0 calls=0 user_ticks=0 user_irqs=0
+[proc-fault] scause=0xd sepc=0x116e stval=0x3ffffff000
+pgos> echo USER_6_RETURNED
+[echo] USER_6_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 7
+[user-start] pid=8 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[proc] pid=8 mode=7 origin=U reason=exit status=0 report=0 calls=9 user_ticks=0 user_irqs=0
+pgos> echo USER_7_RETURNED
+[echo] USER_7_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> user 0
+[user-start] pid=9 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+hello from U-mode
+[proc] pid=9 mode=0 origin=U reason=exit status=0 report=5050 calls=13753 user_ticks=30 user_irqs=0
+pgos> echo USER_0_RETURNED
+[echo] USER_0_RETURNED
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> utest
+[utest] allocation-budget=0 PASS
+[utest] allocation-budget=1 PASS
+[utest] allocation-budget=2 PASS
+[utest] allocation-budget=3 PASS
+[utest] allocation-budget=4 PASS
+[utest] allocation-budget=5 PASS
+[utest] allocation-budget=6 PASS
+[utest] allocation-budget=7 PASS
+[utest] allocation-budget=8 PASS
+[utest] rollback borrowed pages remain allocated PASS
+[utest] rollback resource balance PASS
+[utest] memory-production-create PASS
+[utest] memory-exact-owned-pages PASS
+[utest] memory-code-rxu PASS
+[utest] memory-data-rwu-nx PASS
+[utest] memory-stack-rwu-nx PASS
+[utest] memory-trampoline-s-only PASS
+[utest] memory-trapframe-s-only PASS
+[utest] memory-kernel-stack-s-only PASS
+[utest] memory-null-unmapped PASS
+[utest] memory-kernel-identity-unmapped PASS
+[utest] memory-uart-unmapped PASS
+[utest] memory-guard-unmapped PASS
+[utest] memory-heap-unmapped PASS
+[utest] memory-valid-cross-page-copy PASS
+[utest] memory-bad-second-page-no-partial-copy PASS
+[utest] memory-trapframe-copy-rejected PASS
+[utest] memory-trampoline-copy-rejected PASS
+[utest] memory-kernel-stack-copy-rejected PASS
+[utest] memory-wrap-copy-rejected PASS
+[utest] memory-zero-length-no-access PASS
+[utest] memory-destroy-restores-owned-pages PASS
+[utest] memory-repeat-destroy-harmless PASS
+[utest] memory-borrowed-content-preserved PASS
+[utest] memory-borrowed-pages-remain-owned PASS
+[utest] memory-resource-balance PASS
+[user-start] pid=10 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+hello from U-mode
+[utest] round=0 mode=0 reason=0 status=0 report=5050 origin=1 cause=0x0 epc=0x0 value=0x0 user_ticks=30 PASS
+[user-start] pid=11 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=0 mode=1 reason=1 status=-1 report=0 origin=1 cause=0xd epc=0x1152 value=0x80200000 user_ticks=0 PASS
+[user-start] pid=12 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=0 mode=2 reason=1 status=-1 report=0 origin=1 cause=0xd epc=0x1210 value=0x10000000 user_ticks=0 PASS
+[user-start] pid=13 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=0 mode=3 reason=1 status=-1 report=0 origin=1 cause=0xf epc=0x121c value=0x1000 user_ticks=0 PASS
+[user-start] pid=14 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=0 mode=4 reason=1 status=-1 report=0 origin=1 cause=0xc epc=0x3fffffd000 value=0x3fffffd000 user_ticks=0 PASS
+[user-start] pid=15 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=0 mode=5 reason=1 status=-1 report=0 origin=1 cause=0xd epc=0x123e value=0x3fffffe000 user_ticks=0 PASS
+[user-start] pid=16 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=0 mode=6 reason=1 status=-1 report=0 origin=1 cause=0xd epc=0x116e value=0x3ffffff000 user_ticks=0 PASS
+[user-start] pid=17 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=0 mode=7 reason=0 status=0 report=0 origin=1 cause=0x0 epc=0x0 value=0x0 user_ticks=0 PASS
+[user-start] pid=18 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+hello from U-mode
+[utest] round=1 mode=0 reason=0 status=0 report=5050 origin=1 cause=0x0 epc=0x0 value=0x0 user_ticks=30 PASS
+[user-start] pid=19 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=1 mode=1 reason=1 status=-1 report=0 origin=1 cause=0xd epc=0x1152 value=0x80200000 user_ticks=0 PASS
+[user-start] pid=20 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=1 mode=2 reason=1 status=-1 report=0 origin=1 cause=0xd epc=0x1210 value=0x10000000 user_ticks=0 PASS
+[user-start] pid=21 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=1 mode=3 reason=1 status=-1 report=0 origin=1 cause=0xf epc=0x121c value=0x1000 user_ticks=0 PASS
+[user-start] pid=22 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=1 mode=4 reason=1 status=-1 report=0 origin=1 cause=0xc epc=0x3fffffd000 value=0x3fffffd000 user_ticks=0 PASS
+[user-start] pid=23 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=1 mode=5 reason=1 status=-1 report=0 origin=1 cause=0xd epc=0x123e value=0x3fffffe000 user_ticks=0 PASS
+[user-start] pid=24 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=1 mode=6 reason=1 status=-1 report=0 origin=1 cause=0xd epc=0x116e value=0x3ffffff000 user_ticks=0 PASS
+[user-start] pid=25 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+[utest] round=1 mode=7 reason=0 status=0 report=0 origin=1 cause=0x0 epc=0x0 value=0x0 user_ticks=0 PASS
+[utest] all modes restore both page pools PASS
+[utest] summary failures=0
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> echo UTEST_RETURNED
+[echo] UTEST_RETURNED
+pgos> user 0
+[user-start] pid=26 hart=0 entry=0x1000 sp=0x3fffffe000 kstack=0x3fffffc000 root=0x80286000
+hello from U-mode
+[proc] pid=26 mode=0 origin=U reason=exit status=0 report=5050 calls=14203 user_ticks=30 user_irqs=21
+pgos> echo IRQ_DURING_USER
+[echo] IRQ_DURING_USER
+pgos> mem
+[mem] pool=kernel total=16114 free=16007 allocated=107 rejected=15 range=0x80214000..0x84108000
+[mem] pool=user total=16120 free=16120 allocated=0 rejected=12 range=0x84108000..0x88000000
+pgos> echo CRLF_OK
+[echo] CRLF_OK
+pgos> echo FIXx ED
+[echo] FIXED
+pgos> echo DELX _OK
+[echo] DEL_OK
+pgos> echo LF_OK
+[echo] LF_OK
+pgos> echo bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+[echo] bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+pgos> echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[input] line too long; discarded
+pgos> echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+[input] line too long; discarded
+pgos> echo RECOVERED
+[echo] RECOVERED
+pgos> irq
+[irq] uart_rx=1035 bytes=1035 dropped=0
+pgos> quit
+[shutdown]

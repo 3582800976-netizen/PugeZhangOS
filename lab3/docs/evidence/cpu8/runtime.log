@@ -1,4 +1,4 @@
-Agent-run UART observation, started 2026-10-08T10:13:49.951240+00:00
+Agent-run UART observation, started 2026-10-13T13:27:08.299708+00:00
 $ qemu-system-riscv64 -machine virt -bios default -kernel /home/zpg/Work/PugeZhang/lab3/build/cpu8/kernel.elf -m 128M -smp 8 -nographic -monitor none
 
 
@@ -14,7 +14,7 @@ OpenSBI v0.7
 
 Platform Name          : QEMU Virt Machine
 Platform HART Features : RV64ACDFIMSU
-Current Hart           : 0
+Current Hart           : 7
 Firmware Base          : 0x80000000
 Firmware Size          : 128 KB
 Runtime SBI Version    : 0.2
@@ -24,49 +24,49 @@ MEDELEG : 0x000000000000b109
 PMP0    : 0x0000000080000000-0x000000008001ffff (A)
 PMP1    : 0x0000000000000000-0xffffffffffffffff (A,R,W,X)
 
-PugeZhangOS: Lab 3, 8 harts, boot hart 0
+PugeZhangOS: Lab 3, 8 harts, boot hart 7
 [firmware] OpenSBI DTB=0x82200000 bytes=6222 preserved
 [firmware] HSM started=7
-[uart-test] hart=5 seq=0
-[uart-test] hart=6 seq=0
+[uart-test] hart=7 seq=0
+[uart-test] hart=7 seq=1
 [uart-test] hart=2 seq=0
-[uart-test] hart=3 seq=0
+[uart-test] hart=6 seq=0
 [uart-test] hart=2 seq=1
-[uart-test] hart=4 seq=0
-[uart-test] hart=1 seq=0
-[uart-test] hart=2 seq=2
+[uart-test] hart=3 seq=0
+[uart-test] hart=5 seq=0
+[uart-test] hart=7 seq=2
 [uart-test] hart=0 seq=0
-[uart-test] hart=2 seq=3
-[uart-test] hart=1 seq=1
-[uart-test] hart=6 seq=1
 [uart-test] hart=5 seq=1
 [uart-test] hart=0 seq=1
-[uart-test] hart=3 seq=1
 [uart-test] hart=5 seq=2
-[uart-test] hart=7 seq=0
-[uart-test] hart=0 seq=2
-[uart-test] hart=1 seq=2
-[uart-test] hart=4 seq=1
-[uart-test] hart=0 seq=3
-[uart-test] hart=6 seq=2
-[uart-test] hart=5 seq=3
-[uart-test] hart=3 seq=2
-[uart-test] hart=6 seq=3
-[uart-test] hart=3 seq=3
-[uart-test] hart=4 seq=2
-[uart-test] hart=4 seq=3
-[uart-test] hart=1 seq=3
-[uart-test] hart=7 seq=1
-[uart-test] hart=7 seq=2
+[uart-test] hart=6 seq=1
+[uart-test] hart=4 seq=0
 [uart-test] hart=7 seq=3
-[boot] hart=0 stages=0x7f ready=1 stack=0x8020d000..0x8020e000 satp=0x8000000000080210
+[uart-test] hart=0 seq=2
+[uart-test] hart=6 seq=2
+[uart-test] hart=2 seq=2
+[uart-test] hart=6 seq=3
+[uart-test] hart=4 seq=1
+[uart-test] hart=3 seq=1
+[uart-test] hart=4 seq=2
+[uart-test] hart=1 seq=0
+[uart-test] hart=0 seq=3
+[uart-test] hart=1 seq=1
+[uart-test] hart=3 seq=2
+[uart-test] hart=2 seq=3
+[uart-test] hart=1 seq=2
+[uart-test] hart=4 seq=3
+[uart-test] hart=3 seq=3
+[uart-test] hart=1 seq=3
+[uart-test] hart=5 seq=3
+[boot] hart=0 stages=0x77 ready=1 stack=0x8020d000..0x8020e000 satp=0x8000000000080210
 [boot] hart=1 stages=0x77 ready=1 stack=0x8020c000..0x8020d000 satp=0x8000000000080210
 [boot] hart=2 stages=0x77 ready=1 stack=0x8020b000..0x8020c000 satp=0x8000000000080210
 [boot] hart=3 stages=0x77 ready=1 stack=0x8020a000..0x8020b000 satp=0x8000000000080210
 [boot] hart=4 stages=0x77 ready=1 stack=0x80209000..0x8020a000 satp=0x8000000000080210
 [boot] hart=5 stages=0x77 ready=1 stack=0x80208000..0x80209000 satp=0x8000000000080210
 [boot] hart=6 stages=0x77 ready=1 stack=0x80207000..0x80208000 satp=0x8000000000080210
-[boot] hart=7 stages=0x77 ready=1 stack=0x80206000..0x80207000 satp=0x8000000000080210
+[boot] hart=7 stages=0x7f ready=1 stack=0x80206000..0x80207000 satp=0x8000000000080210
 [test] page-concurrent PASS
 [mem] pool=kernel total=16118 free=16015 allocated=103 rejected=0 range=0x80210000..0x84108000
 [mem] pool=user total=16120 free=16120 allocated=0 rejected=0 range=0x84108000..0x88000000
@@ -122,16 +122,16 @@ PugeZhangOS: Lab 3, 8 harts, boot hart 0
 [test] vm PASS
 [test] trap PASS
 [test] summary failures=0
-[ready] lab=3 cpus=8 leader=0
+[ready] lab=3 cpus=8 leader=7
 pgos> boot
-[boot] hart=0 stages=0x7f ready=1 stack=0x8020d000..0x8020e000 satp=0x8000000000080210
+[boot] hart=0 stages=0x77 ready=1 stack=0x8020d000..0x8020e000 satp=0x8000000000080210
 [boot] hart=1 stages=0x77 ready=1 stack=0x8020c000..0x8020d000 satp=0x8000000000080210
 [boot] hart=2 stages=0x77 ready=1 stack=0x8020b000..0x8020c000 satp=0x8000000000080210
 [boot] hart=3 stages=0x77 ready=1 stack=0x8020a000..0x8020b000 satp=0x8000000000080210
 [boot] hart=4 stages=0x77 ready=1 stack=0x80209000..0x8020a000 satp=0x8000000000080210
 [boot] hart=5 stages=0x77 ready=1 stack=0x80208000..0x80209000 satp=0x8000000000080210
 [boot] hart=6 stages=0x77 ready=1 stack=0x80207000..0x80208000 satp=0x8000000000080210
-[boot] hart=7 stages=0x77 ready=1 stack=0x80206000..0x80207000 satp=0x8000000000080210
+[boot] hart=7 stages=0x7f ready=1 stack=0x80206000..0x80207000 satp=0x8000000000080210
 pgos> help
 Commands: help boot mem vm [hex-address] ticks irq test echo <text> quit
 Kernel monitor in S-mode; no user processes yet. Lab 3, CPUS=8
@@ -275,7 +275,7 @@ pgos> ticks
 [ticks] hart=6 count=81
 [ticks] hart=7 count=81
 pgos> irq
-[irq] uart_rx=42 bytes=47 dropped=0
+[irq] uart_rx=41 bytes=47 dropped=0
 pgos> echo CRLF_OK
 [echo] CRLF_OK
 pgos> echo FIXx ED
@@ -293,6 +293,6 @@ pgos> echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 pgos> echo RECOVERED
 [echo] RECOVERED
 pgos> irq
-[irq] uart_rx=630 bytes=681 dropped=0
+[irq] uart_rx=640 bytes=681 dropped=0
 pgos> quit
 [shutdown]

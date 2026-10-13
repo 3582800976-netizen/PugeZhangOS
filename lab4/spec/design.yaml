@@ -19,6 +19,7 @@ machine:
   harts:
     owner: boot leader
     others: 只处理内核中断，不执行用户进程
+    uart: UART 的 PLIC 中断只路由启动拥有者；每个核心仍处理独立 timer
   physical_board: 暂缓；这些硬件常量不构成 VisionFive 2 适配
 mechanisms:
   paging: Sv39；每个进程独立页表，内核原有 identity 映射无 U 权限

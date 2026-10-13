@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and independently exercise Lab 1–3 through the emulated UART.
+"""Build and independently exercise Lab 1–4 through the emulated UART.
 
 Only the Python standard library and the existing RISC-V/QEMU tools are used.
 The monitor runs inside the kernel; it is not a user process or a Unix shell.
@@ -179,6 +179,31 @@ def check_elf(kernel: Path, lab: int, toolprefix: str, directory: Path) -> None:
     boot = re.search(r"^([0-9a-fA-F]+)\s+T\s+_boot$", readable(symbols.stdout), re.MULTILINE)
     require(boot is not None and int(boot[1], 16) == expected,
             f"_boot is not at the ELF entry {expected:#x}")
+    if lab == 4:
+        user = kernel.parent / "user" / "first.elf"
+        user_argv = [toolprefix + "readelf", "-h", "-S", "-W", str(user)]
+        user_elf = subprocess.run(user_argv, stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT, timeout=5)
+        with (directory / "elf.log").open("ab") as log:
+            log.write(("\n$ " + shlex.join(user_argv) + "\n\n").encode() + user_elf.stdout)
+        user_header = readable(user_elf.stdout)
+        require(user_elf.returncode == 0 and "RISC-V" in user_header and "ELF64" in user_header,
+                "independently linked user ELF is missing or invalid")
+        user_entry = re.search(r"Entry point address:\s*(0x[0-9a-fA-F]+)", user_header)
+        require(user_entry is not None and int(user_entry[1], 16) == 0x1000,
+                "user ELF entry is not USER_CODE_BASE")
+        for section, address, permissions, filename in (("text", 0x1000, "AX", "code.bin"),
+                                                        ("data", 0x2000, "WA", "data.bin")):
+            match = re.search(r"\[\s*\d+\]\s+\." + section +
+                              r"\s+PROGBITS\s+([0-9a-fA-F]+)\s+\S+\s+([0-9a-fA-F]+)\s+\S+\s+(\w+)",
+                              user_header)
+            require(match is not None, f"user .{section} section missing")
+            assert match is not None
+            section_address, size, flags = int(match[1], 16), int(match[2], 16), match[3]
+            require(section_address == address and 0 < size <= 4096 and flags == permissions,
+                    f"user .{section} layout or permissions invalid")
+            require((user.parent / filename).stat().st_size == size,
+                    f"embedded {filename} does not match its user ELF section")
 
 
 def check_boot(reply: str, lab: int, cpus: int, leader: int) -> None:
@@ -244,6 +269,111 @@ def irq_snapshot(reply: str) -> tuple[int, int, int]:
     return tuple(map(int, row.groups()))
 
 
+def process_snapshot(reply: str, mode: int) -> dict[str, int | str]:
+    row = re.search(
+        r"^\[proc\] pid=(\d+) mode=(\d+) origin=(\w+) reason=([\w-]+) "
+        r"status=(-?\d+) report=(\d+) calls=(\d+) user_ticks=(\d+) user_irqs=(\d+)",
+        reply, re.MULTILINE,
+    )
+    require(row is not None, f"missing actual process result:\n{reply}")
+    assert row is not None
+    result: dict[str, int | str] = dict(zip(
+        ("pid", "mode", "origin", "reason", "status", "report", "calls", "user_ticks", "user_irqs"),
+        row.groups(),
+    ))
+    for key in ("pid", "mode", "status", "report", "calls", "user_ticks", "user_irqs"):
+        result[key] = int(result[key])
+    require(result["pid"] > 0 and result["mode"] == mode and result["origin"] == "U",
+            f"process was not a real U-mode run of mode {mode}: {result}")
+    if mode in (0, 7):
+        require(result["reason"] == "exit" and result["status"] == 0,
+                f"user program failed: {result}")
+        require(result["calls"] >= 8, f"minimal call tests missing: {result}")
+        if mode == 0:
+            require(result["report"] == 5050 and result["user_ticks"] >= 3,
+                    f"user computation or real U timer interrupts missing: {result}")
+            require("hello from U-mode" in reply, f"user WRITE did not print its message:\n{reply}")
+    else:
+        addresses = {1: 0x80200000, 2: 0x10000000, 3: 0x1000,
+                     4: 0x4000000000 - 12288, 5: 0x4000000000 - 8192,
+                     6: 0x4000000000 - 4096}
+        causes = {1: 13, 2: 13, 3: 15, 4: 12, 5: 13, 6: 13}
+        fault = re.search(r"^\[proc-fault\] scause=(0x[0-9a-fA-F]+) "
+                          r"sepc=(0x[0-9a-fA-F]+) stval=(0x[0-9a-fA-F]+)", reply, re.MULTILINE)
+        require(result["reason"] == "fault" and fault is not None,
+                f"protected user access was not contained:\n{reply}")
+        assert fault is not None
+        cause, pc, value = (int(item, 16) for item in fault.groups())
+        require(cause == causes[mode] and value == addresses[mode],
+                f"wrong user fault evidence: mode={mode} cause={cause} value={value:#x}")
+        require(pc == addresses[4] if mode == 4 else 0x1000 <= pc < 0x2000,
+                f"fault PC was outside the relevant user instructions: {pc:#x}")
+    return result
+
+
+def check_user_processes(machine: Machine) -> None:
+    before = memory_snapshot(machine.command("mem"))
+    for mode in (0, 1, 2, 3, 4, 5, 6, 7, 0):
+        process_snapshot(machine.command(f"user {mode}", timeout=20), mode)
+        check_echo(machine, f"echo USER_{mode}_RETURNED\n".encode(), f"USER_{mode}_RETURNED")
+        after = memory_snapshot(machine.command("mem"))
+        require(all(before[name][:3] == after[name][:3] for name in before),
+                f"mode {mode} leaked process resources: before={before}, after={after}")
+    tests = machine.command("utest", timeout=30)
+    require("[utest] summary failures=0" in tests and
+            re.search(r"^\[utest\][^\n]*\bFAIL\b", tests, re.MULTILINE) is None,
+            f"user-process tests failed:\n{tests}")
+    for budget in range(9):
+        require(f"[utest] allocation-budget={budget} PASS" in tests,
+                f"allocation-failure rollback case {budget} missing")
+    for proof in ("memory-valid-cross-page-copy", "memory-bad-second-page-no-partial-copy",
+                  "memory-exact-owned-pages", "memory-resource-balance"):
+        require(f"[utest] {proof} PASS" in tests,
+                f"user memory production-path proof missing: {proof}")
+    rows = re.findall(r"^\[utest\] round=(\d+) mode=(\d+) reason=(\d+) "
+                      r"status=(-?\d+) report=(\d+) origin=(\d+) cause=(0x[0-9a-fA-F]+) "
+                      r"epc=(0x[0-9a-fA-F]+) value=(0x[0-9a-fA-F]+) user_ticks=(\d+) PASS$",
+                      tests.replace("\r", ""), re.MULTILINE)
+    require(len(rows) == 16 and {(int(row[0]), int(row[1])) for row in rows} ==
+            {(round_, mode) for round_ in range(2) for mode in range(8)},
+            f"repeated mode/isolation evidence missing:\n{tests}")
+    for row in rows:
+        _round, mode, reason, status, report, origin, cause, pc, value, ticks = row
+        require(int(origin) > 0, "repeated run lacked U-origin evidence")
+        if int(mode) == 0:
+            require(int(reason) == 0 and int(status) == 0 and int(report) == 5050 and int(ticks) >= 3,
+                    "repeated normal user computation or timer proof failed")
+        elif int(mode) == 7:
+            require(int(reason) == 0 and int(status) == 0, "repeated bad-call recovery failed")
+        else:
+            expected_cause = 15 if int(mode) == 3 else 12 if int(mode) == 4 else 13
+            require(int(reason) == 1 and int(cause, 16) == expected_cause,
+                    "repeated protection fault proof failed")
+    after = memory_snapshot(machine.command("mem"))
+    require(all(before[name][:3] == after[name][:3] for name in before),
+            f"repeated user tests leaked pages: before={before}, after={after}")
+    check_echo(machine, b"echo UTEST_RETURNED\n", "UTEST_RETURNED")
+
+    # Inject input after user WRITE proves U execution, before the user timer
+    # window ends. The kernel monitor consumes the queued line after EXIT.
+    machine.drain_for(0.025)
+    start = len(machine.output)
+    machine.send(b"user 0\n")
+    machine.wait_for(b"hello from U-mode", start, timeout=20)
+    machine.send(b"echo IRQ_DURING_USER\n")
+    marker = b"[echo] IRQ_DURING_USER"
+    machine.wait_for(marker, start, timeout=20)
+    end = machine.output.find(marker, start) + len(marker)
+    machine.wait_for(PROMPT, end, timeout=5)
+    reply = readable(bytes(machine.output[start:]))
+    result = process_snapshot(reply, 0)
+    require(result["user_irqs"] > 0,
+            f"UART input was not serviced during actual U execution:\n{reply}")
+    after = memory_snapshot(machine.command("mem"))
+    require(all(before[name][:3] == after[name][:3] for name in before),
+            "UART-interrupted user run leaked pages")
+
+
 def check_echo(machine: Machine, data: bytes, expected: str) -> None:
     reply = machine.command(data)
     require(re.search(r"^\[echo\] " + re.escape(expected) + r"\r?$", reply, re.MULTILINE)
@@ -281,8 +411,10 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
         commands = ["boot", "test", "echo", "quit"]
         if lab >= 2:
             commands += ["mem", "vm"]
-        if lab == 3:
+        if lab >= 3:
             commands += ["ticks", "irq"]
+        if lab == 4:
+            commands += ["user", "utest", "proc"]
         require(all(name in help_reply for name in commands),
                 "help omits supported diagnostic commands")
         tests = machine.command("test", timeout=15)
@@ -316,7 +448,7 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
                         is not None, f"{name} unexpectedly mapped:\n{maps}")
             passed.append("allocator+Sv39+actual CPU alias tests; repeat restores both pools; mapping permissions")
 
-        if lab == 3:
+        if lab >= 3:
             require("[test] trap PASS" in tests, f"trap register-restore probe missing:\n{tests}")
             first_ticks = timer_snapshot(machine.command("ticks"), cpus)
             machine.drain_for(0.35)
@@ -325,6 +457,10 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
                     f"timer did not advance on every hart: {first_ticks} -> {second_ticks}")
             before_irq = irq_snapshot(machine.command("irq"))
             passed.append("SBI timer interrupts advance on every active hart")
+
+        if lab == 4:
+            check_user_processes(machine)
+            passed.append("actual U execution+register/call/timer proofs; six contained protection faults; rollback and repeated page balance")
 
         check_echo(machine, b"echo CRLF_OK\r\n", "CRLF_OK")
         check_echo(machine, b"echo FIXx\bED\n", "FIXED")
@@ -341,7 +477,7 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
         check_echo(machine, b"echo RECOVERED\n", "RECOVERED")
         passed.append("UART CRLF/LF/backspace/DEL; 127-character boundary; overflow discard+recovery")
 
-        if lab == 3:
+        if lab >= 3:
             after_irq = irq_snapshot(machine.command("irq"))
             require(after_irq[0] > before_irq[0] and after_irq[1] > before_irq[1],
                     f"UART IRQ/received-byte counters did not advance: {before_irq} -> {after_irq}")
@@ -358,7 +494,7 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--lab", choices=("1", "2", "3", "all"), default="all")
+    parser.add_argument("--lab", choices=("1", "2", "3", "4", "all"), default="all")
     parser.add_argument("--cpus", default="1,2,3,8", help="comma-separated CPU counts from 1 to 8")
     parser.add_argument("--qemu", default=os.environ.get("QEMU", "qemu-system-riscv64"))
     parser.add_argument("--toolprefix", default=os.environ.get("TOOLPREFIX", "riscv64-linux-gnu-"))
@@ -372,7 +508,7 @@ def main() -> int:
         parser.error("--cpus must contain comma-separated integers")
     if not cpus or any(count < 1 or count > 8 for count in cpus):
         parser.error("CPU counts must be from 1 to 8")
-    labs = [1, 2, 3] if args.lab == "all" else [int(args.lab)]
+    labs = [1, 2, 3, 4] if args.lab == "all" else [int(args.lab)]
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
     failures = 0
     for lab in labs:

@@ -1,0 +1,5 @@
+$ make --no-print-directory -C lab4 CPUS=8
+
+mkdir -p build/cpu8/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=8 -c drivers/plic.c -o build/cpu8/drivers/plic.o
+riscv64-linux-gnu-ld -T linker.ld -o build/cpu8/kernel.elf build/cpu8/boot/entry.o build/cpu8/trap/context.o build/cpu8/trap/entry.o build/cpu8/trap/user_entry.o build/cpu8/user/image.o build/cpu8/boot/dtb.o build/cpu8/boot/start.o build/cpu8/kernel/bootstate.o build/cpu8/kernel/main.o build/cpu8/kernel/spinlock.o build/cpu8/mm/page.o build/cpu8/mm/user_vm.o build/cpu8/mm/vm.o build/cpu8/trap/trap.o build/cpu8/trap/user_trap.o build/cpu8/drivers/platform.o build/cpu8/drivers/plic.o build/cpu8/drivers/uart.o build/cpu8/proc/process.o build/cpu8/syscall/dispatch.o build/cpu8/monitor/diagnostics.o build/cpu8/monitor/monitor.o build/cpu8/tests/selftest.o build/cpu8/tests/user_memory.o build/cpu8/tests/user_process.o build/cpu8/lib/console.o build/cpu8/lib/memory.o build/cpu8/lib/sbi.o

@@ -2,24 +2,27 @@
 
 先看这张图，再进入对应实验。**Lab 是每个阶段的完整版本；目录中的模块才是操作系统的组成部分。**两者分别回答“我做到了哪一步”和“这部分负责什么”。
 
-当前可运行的是 Lab 1–3；Lab 4–9 已整理接入规划，尚未实现。
+当前可运行的是 Lab 1–4；Lab 5–9 保留接入规划。Lab 4 的进程、用户地址空间和最小调用已经接入，完整调度与文件系统尚未实现。
 
 ## 1. 最后要形成怎样的系统
 
 ```mermaid
 flowchart TB
-    subgraph userspace["用户空间 · Lab 4–9 规划"]
-        APP["用户程序与 Shell"]
-        ULIB["用户库与系统调用入口"]
+    subgraph userspace["用户空间"]
+        APP["首个用户程序 · Lab 4 已实现"]
+        SHELL["用户 Shell · Lab 9 规划"]
+        ULIB["最小用户调用封装 · 已实现"]
+        SHELL -.-> ULIB
         APP --> ULIB
     end
     subgraph kernelspace["内核空间"]
-        SYSCALL["系统调用 · Lab 4 / 5 / 9 规划"]
-        PROC["进程、调度、生命周期 · Lab 4 / 6 规划"]
+        SYSCALL["最小系统调用 · Lab 4 已实现"]
+        PROC["单进程创建、运行与退出 · 已实现"]
+        SCHED["多进程调度与生命周期 · Lab 6 规划"]
         FS["文件对象、路径、inode · Lab 8 / 9 规划"]
         BLOCK["块缓存 · Lab 7 规划"]
-        MM["物理页与页表 · Lab 2 已实现"]
-        TRAP["异常与中断 · Lab 3 已实现"]
+        MM["物理页、内核与用户页表 · 已实现"]
+        TRAP["U/S 陷入、返回与中断 · 已实现"]
         DRIVER["UART、PLIC、平台驱动 · 已实现"]
         DISK["磁盘驱动 · Lab 7 规划"]
         CORE["启动、多核状态、锁 · 已实现"]
@@ -27,11 +30,13 @@ flowchart TB
     end
     HW["QEMU 模拟的 RISC-V CPU、RAM 与设备"]
     ULIB -->|"ecall：请求内核服务"| TRAP
-    TRAP -.-> SYSCALL
-    SYSCALL -.-> PROC
+    TRAP --> SYSCALL
+    SYSCALL --> PROC
     SYSCALL -.-> FS
-    PROC -.-> MM
-    TRAP -.-> PROC
+    PROC --> MM
+    PROC -.-> SCHED
+    TRAP -->|"sret：恢复用户执行"| APP
+    TRAP --> PROC
     FS -.-> BLOCK
     BLOCK -.-> DISK
     TRAP --> DRIVER
@@ -43,7 +48,7 @@ flowchart TB
     MON -->|"查询状态"| MM
     MON -->|"查询计数"| TRAP
     classDef planned fill:#fff4db,stroke:#a66a00,stroke-dasharray:5 5;
-    class APP,ULIB,SYSCALL,PROC,FS,BLOCK,DISK planned;
+    class SHELL,SCHED,FS,BLOCK,DISK planned;
 ```
 
 黄色虚线模块是后续规划。当前 `pgos>` 是内核诊断台；Lab 9 的 Shell 会是用户程序，两者分别拥有自己的代码和执行权限。
@@ -57,13 +62,14 @@ PugeZhang/
 ├── lab0/                 环境与参考 xv6
 ├── lab1/                 启动和输出的完整版本
 ├── lab2/                 加入内存管理的完整版本
-├── lab3/                 加入中断的完整版本；当前最新可运行基础
-├── lab4/ … lab9/         各阶段目标、依赖与接入规划，尚无实现
+├── lab3/                 加入中断的完整版本
+├── lab4/                 首个用户进程；当前最新可运行基础
+├── lab5/ … lab9/         各阶段目标、依赖与接入规划，尚无实现
 ├── docs/
 │   ├── ROADMAP.md        Lab 0–9 的建设顺序和交付边界
 │   ├── DEVELOPMENT.md    下一阶段怎样在现有基础上继续
 │   └── COURSE_SCOPE.md  课程依据与核对范围
-└── scripts/check.py      当前 Lab 1–3 的自动运行检查
+└── scripts/check.py      当前 Lab 1–4 的自动运行检查
 ```
 
 以 `lab3/` 为例，内部的真实代码框架如下。Lab 1、2 使用相同职责划分，只保留它们已经需要的模块：
@@ -93,17 +99,17 @@ lab3/
 | --- | --- | --- |
 | `boot/` | 给核心设置栈，处理启动约定 | 保持稳定，按平台要求调整 |
 | `kernel/` | 全局初始化、每核就绪、锁 | 启动时再安排进程、磁盘和文件系统初始化 |
-| `mm/` | 物理页池、内核页表、权限 | Lab 4/5：用户页表、用户内存分配与安全复制 |
-| `trap/` | 进入异常/中断、保存现场、分发、返回 | Lab 4：U/S 入口与最小系统调用往返；Lab 5：完善调用；Lab 6：接入抢占 |
+| `mm/` | 物理页池、内核/用户页表、权限、copyin | Lab 5：扩展用户内存与复制接口 |
+| `trap/` | 内核与用户入口、完整整数现场、中断和调用返回 | Lab 5：完善调用；Lab 6：接入抢占 |
 | `drivers/` | 读写设备寄存器、处理设备通知 | Lab 7：VirtIO 磁盘驱动及完成通知 |
 | `lib/` | 基础字符串/内存操作、打印、固件调用 | 继续提供小而明确的工具 |
 | `monitor/` | 解析诊断命令、读取状态并展示 | 展示进程、调度、磁盘与文件系统状态 |
 | `tests/` | 编排实际检查 | 每个新增模块加入行为验证 |
-| `proc/`（规划） | 尚未实现 | Lab 4：进程；Lab 6：调度和生命周期；Lab 9：exec |
-| `syscall/`（规划） | 尚未实现 | Lab 4：最小调用通路；Lab 5：扩展分发与参数检查；Lab 9：文件系统调用 |
+| `proc/` | 单槽 PCB、首次 context、用户执行与退出回收 | Lab 6：调度和生命周期；Lab 9：exec |
+| `syscall/` | GETPID/WRITE/REPORT/EXIT/TICKS，错误参数检查 | Lab 5：扩展调用与内存；Lab 9：文件系统调用 |
 | `block/`（规划） | 尚未实现 | Lab 7：磁盘块缓存 |
 | `fs/`（规划） | 尚未实现 | Lab 8：inode、目录与路径；Lab 9：文件对象 |
-| `user/`（规划） | 尚未实现 | Lab 4：首个程序；Lab 5：用户库；Lab 9：Shell |
+| `user/` | 独立用户映像、计算/调用与寄存器探针 | Lab 5：用户库；Lab 9：Shell |
 
 括号中标为规划的目录将在实现对应阶段时加入该实验的源码。现在没有放空函数来假装模块已经存在。
 
@@ -156,9 +162,9 @@ Lab 1 自己完成 M→S，尚无 `mm/`。Lab 2 不开设备和时钟中断。La
 
 中断路径做接收和计数，命令处理留在正常执行流。后续磁盘完成通知也可以沿这个边界接入，睡眠和唤醒则由进程模块管理。
 
-## 6. 为后六个实验保留的边界
+## 6. 为后续实验保留的边界
 
-- **用户程序访问内核：**通过系统调用。用户指针需要经过用户页表检查和安全复制；当前“用户页池”还不等于完整用户地址空间。
+- **用户程序访问内核：**通过系统调用。用户指针需要经过用户页表检查和安全复制；Lab 4 已有独立用户页表，尚未提供动态堆增长和完整用户内存 API。
 - **调度访问中断：**时钟处理报告事件，进程模块决定是否切换；上下文切换和普通中断返回分别维护。
 - **文件系统访问磁盘：**文件接口 → 路径/inode → 块缓存 → 磁盘驱动。Shell 不直接操作磁盘块。
 - **诊断访问状态：**调用各模块的查询接口，不直接改页表、进程表或磁盘队列的内部数组。
@@ -170,6 +176,6 @@ Lab 1 自己完成 M→S，尚无 `mm/`。Lab 2 不开设备和时钟中断。La
 
 [建设路线](docs/ROADMAP.md)列出后续实验；[开发约定](docs/DEVELOPMENT.md)说明如何从上一阶段接续。
 
-特色始终围绕“让内核状态可以被解释”：当前有每核启动记录、页归还检查、地址翻译窗口和真实中断计数。后续可沿用诊断接口显示进程状态、上下文切换次数、缓存命中与路径查找过程。后四项现在是规划，不是已运行的功能。
+特色始终围绕“让内核状态可以被解释”：当前有每核启动记录、页归还检查、地址翻译窗口和真实中断计数。Lab 4 已增加真实进程启动卡、运行结果与保护异常展示；多进程切换统计、缓存命中与路径查找过程留待后续实现。
 
-课程依据与核对范围见 [课程对照](docs/COURSE_SCOPE.md)。自动运行证据归各实验：[Lab 1](lab1/docs/evidence/summary.txt)、[Lab 2](lab2/docs/evidence/summary.txt)、[Lab 3](lab3/docs/evidence/summary.txt)。
+课程依据与核对范围见 [课程对照](docs/COURSE_SCOPE.md)。自动运行证据归各实验：[Lab 1](lab1/docs/evidence/summary.txt)、[Lab 2](lab2/docs/evidence/summary.txt)、[Lab 3](lab3/docs/evidence/summary.txt)、[Lab 4](lab4/docs/evidence/summary.txt)。

@@ -1,0 +1,5 @@
+$ make --no-print-directory -C lab4 CPUS=2
+
+mkdir -p build/cpu2/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=2 -c drivers/plic.c -o build/cpu2/drivers/plic.o
+riscv64-linux-gnu-ld -T linker.ld -o build/cpu2/kernel.elf build/cpu2/boot/entry.o build/cpu2/trap/context.o build/cpu2/trap/entry.o build/cpu2/trap/user_entry.o build/cpu2/user/image.o build/cpu2/boot/dtb.o build/cpu2/boot/start.o build/cpu2/kernel/bootstate.o build/cpu2/kernel/main.o build/cpu2/kernel/spinlock.o build/cpu2/mm/page.o build/cpu2/mm/user_vm.o build/cpu2/mm/vm.o build/cpu2/trap/trap.o build/cpu2/trap/user_trap.o build/cpu2/drivers/platform.o build/cpu2/drivers/plic.o build/cpu2/drivers/uart.o build/cpu2/proc/process.o build/cpu2/syscall/dispatch.o build/cpu2/monitor/diagnostics.o build/cpu2/monitor/monitor.o build/cpu2/tests/selftest.o build/cpu2/tests/user_memory.o build/cpu2/tests/user_process.o build/cpu2/lib/console.o build/cpu2/lib/memory.o build/cpu2/lib/sbi.o

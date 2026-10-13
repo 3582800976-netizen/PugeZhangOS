@@ -1,0 +1,128 @@
+Agent-run Lab 4 independent build after final UART owner routing change.
+$ make --no-print-directory -C /tmp/puge-lab4-verified-standalone-m2312i7j/lab4 CPUS=1
+
+mkdir -p build/cpu1/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c boot/entry.S -o build/cpu1/boot/entry.o
+mkdir -p build/cpu1/trap/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c trap/context.S -o build/cpu1/trap/context.o
+mkdir -p build/cpu1/trap/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c trap/entry.S -o build/cpu1/trap/entry.o
+mkdir -p build/cpu1/trap/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c trap/user_entry.S -o build/cpu1/trap/user_entry.o
+mkdir -p build/cpu1/user/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -msmall-data-limit=0 -c user/start.S -o build/cpu1/user/start.o
+mkdir -p build/cpu1/user/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -msmall-data-limit=0 -c user/first.c -o build/cpu1/user/first.o
+mkdir -p build/cpu1/user/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -msmall-data-limit=0 -c user/register_probe.S -o build/cpu1/user/register_probe.o
+riscv64-linux-gnu-ld -T user/linker.ld -o build/cpu1/user/first.elf build/cpu1/user/start.o build/cpu1/user/first.o build/cpu1/user/register_probe.o
+riscv64-linux-gnu-objcopy -O binary --only-section=.text build/cpu1/user/first.elf build/cpu1/user/code.bin
+riscv64-linux-gnu-objcopy -O binary --only-section=.data build/cpu1/user/first.elf build/cpu1/user/data.bin
+mkdir -p build/cpu1/user/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -DUSER_CODE_IMAGE='"build/cpu1/user/code.bin"' \
+      -DUSER_DATA_IMAGE='"build/cpu1/user/data.bin"' -c user/image.S -o build/cpu1/user/image.o
+mkdir -p build/cpu1/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c boot/dtb.c -o build/cpu1/boot/dtb.o
+mkdir -p build/cpu1/boot/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c boot/start.c -o build/cpu1/boot/start.o
+mkdir -p build/cpu1/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c kernel/bootstate.c -o build/cpu1/kernel/bootstate.o
+mkdir -p build/cpu1/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c kernel/main.c -o build/cpu1/kernel/main.o
+mkdir -p build/cpu1/kernel/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c kernel/spinlock.c -o build/cpu1/kernel/spinlock.o
+mkdir -p build/cpu1/mm/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c mm/page.c -o build/cpu1/mm/page.o
+mkdir -p build/cpu1/mm/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c mm/user_vm.c -o build/cpu1/mm/user_vm.o
+mkdir -p build/cpu1/mm/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c mm/vm.c -o build/cpu1/mm/vm.o
+mkdir -p build/cpu1/trap/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c trap/trap.c -o build/cpu1/trap/trap.o
+mkdir -p build/cpu1/trap/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c trap/user_trap.c -o build/cpu1/trap/user_trap.o
+mkdir -p build/cpu1/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c drivers/platform.c -o build/cpu1/drivers/platform.o
+mkdir -p build/cpu1/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c drivers/plic.c -o build/cpu1/drivers/plic.o
+mkdir -p build/cpu1/drivers/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c drivers/uart.c -o build/cpu1/drivers/uart.o
+mkdir -p build/cpu1/proc/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c proc/process.c -o build/cpu1/proc/process.o
+mkdir -p build/cpu1/syscall/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c syscall/dispatch.c -o build/cpu1/syscall/dispatch.o
+mkdir -p build/cpu1/monitor/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c monitor/diagnostics.c -o build/cpu1/monitor/diagnostics.o
+mkdir -p build/cpu1/monitor/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c monitor/monitor.c -o build/cpu1/monitor/monitor.o
+mkdir -p build/cpu1/tests/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c tests/selftest.c -o build/cpu1/tests/selftest.o
+mkdir -p build/cpu1/tests/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c tests/user_memory.c -o build/cpu1/tests/user_memory.o
+mkdir -p build/cpu1/tests/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c tests/user_process.c -o build/cpu1/tests/user_process.o
+mkdir -p build/cpu1/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c lib/console.c -o build/cpu1/lib/console.o
+mkdir -p build/cpu1/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c lib/memory.c -o build/cpu1/lib/memory.o
+mkdir -p build/cpu1/lib/
+riscv64-linux-gnu-gcc -march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany -ffreestanding -fno-builtin -nostdlib -nostartfiles -fno-pic -fno-pie -fno-stack-protector -mno-relax -Wall -Wextra -Werror -O2 -g -MMD -MP -Iinclude -DCPUS=1 -c lib/sbi.c -o build/cpu1/lib/sbi.o
+riscv64-linux-gnu-ld -T linker.ld -o build/cpu1/kernel.elf build/cpu1/boot/entry.o build/cpu1/trap/context.o build/cpu1/trap/entry.o build/cpu1/trap/user_entry.o build/cpu1/user/image.o build/cpu1/boot/dtb.o build/cpu1/boot/start.o build/cpu1/kernel/bootstate.o build/cpu1/kernel/main.o build/cpu1/kernel/spinlock.o build/cpu1/mm/page.o build/cpu1/mm/user_vm.o build/cpu1/mm/vm.o build/cpu1/trap/trap.o build/cpu1/trap/user_trap.o build/cpu1/drivers/platform.o build/cpu1/drivers/plic.o build/cpu1/drivers/uart.o build/cpu1/proc/process.o build/cpu1/syscall/dispatch.o build/cpu1/monitor/diagnostics.o build/cpu1/monitor/monitor.o build/cpu1/tests/selftest.o build/cpu1/tests/user_memory.o build/cpu1/tests/user_process.o build/cpu1/lib/console.o build/cpu1/lib/memory.o build/cpu1/lib/sbi.o
+
+Source SHA-256 manifest:
+7f5f3f159ea3f2cfdd3733328fd64378589c309c4721eff4680f48cd83bab1d3  Makefile
+6ad826f641986385f255a083376c121c90579c762ad1b8b1a379b0685539d099  boot/dtb.c
+a1fade75a397b7ce7356685fbc37a7ad68144e1c6e8853e2bef8ad3406fee027  boot/entry.S
+5c4bb35b7d0e34ea782144a7aab4033b6cd15fd92a51fcf323325a24f4c6e19d  boot/start.c
+69f11f784158777c4d88fbdafa1e883db64252afe5b4db89aa04a4df1a1e710b  drivers/platform.c
+321d678e35a2ae96fd7eb988d21e4faad23e49c715977d56fd2c64325668a8a8  drivers/plic.c
+28cf427bd79d5fa284a9b0a6b41dcefcef3ae8147815be73de6597c447193953  drivers/uart.c
+7417b3921ee7d505e07dcc0f90bff2863504fe15ca2cb55e329f39d5afdf8836  include/bootstate.h
+25f62b4449f51ec5adf054a1476415c467872524001caa629b3be234ec21d57a  include/boottrace.h
+3c4bf729a7d883cdc2ad21ac15272416307f543affa9ad1a07e41083467e0d48  include/console.h
+ebc1ce19f5c6ae0055d4bb01d5a864123356118b6b63c6fd89053194eaf53c4c  include/dtb.h
+0a10408d365a5054eac61deff57801b579ddae41512de08ea87c68992169af02  include/memory.h
+66209f38ae319c61c142c7269094add1b265628e634b26696b3b49e31e8a413c  include/monitor.h
+b31cd551c9b55a496a0b5caebed197b4a9f9067cbba800da9899c317207a8796  include/page.h
+088c7ac4765ad524c9989114267110fa1b008e01ec2b9f01d46883644561d93c  include/platform.h
+f7eb633fc86e5c6adb7f5bf0904f058802826f9c707d3a6e7000c137feb968e7  include/plic.h
+120003d4040490375f024189b5f99ca290f76099163b85f8bf9e5d73a9868ba0  include/process.h
+debbfbc2aeb6fbfdd1c2248a70fe133573ef76df1cf344da8988c612ff26ce48  include/riscv.h
+a5b51a1208b63e39360bc033f7288bcceeac9ce9e1be7a81f2751be041c7a8fd  include/sbi.h
+b54b33d272dc31a2f934ed5ed42d24db6ef578bacc8ed38ce93b03969653c2d6  include/selftest.h
+49dd9e5f4ff8c1609cb33097b4f9f4019077a6ea810a6fe7f34523ed07828529  include/spinlock.h
+2abd19186e2ff4e1030264ed00c3038f46003b9d190712daf025d81ad543868d  include/syscall.h
+b02e9439735cf797b2b533d7222fd97e3b53ffa5670353a3d2b178955c1fc113  include/trap.h
+2598ecc988b63432b07ffb646ea857c073011c8df2aae75211f34b0c7f190fc2  include/types.h
+395c7b97c01d708f27770118facb4a7dd27ef87fbc12a8e51fc6c3effc3cb42c  include/uart.h
+507cb7be5acb6b73abed3344fed59544a30733ec54484344de8a7f16233d3f0e  include/user_frame.h
+74a8ea5b9b7a1fa7a815b332fb125b9dbbef54e004eae068554234a8c529a9fb  include/user_layout.h
+5f5bd69f92dac2c09f90be18a4e6310db999f81bc6fb8ce897fd0fa1b2d9eea5  include/user_vm.h
+212734b507047591c7c09648135cc97133b07fb9864e3bd9f926ba04fde6e337  include/vm.h
+ea1e5b7fb72209f15a9d674d1f746363c31abf4c28537ce5e15f79b686097278  kernel/bootstate.c
+2aa0c38de10282d54468d538146fe98d15d9ac8cf92be4a3e0a89b499d84df60  kernel/main.c
+8a61989209462b787236ae75e6203cb008dc58d71ace39faebceeda247b220d5  kernel/spinlock.c
+98f379e9d5e2e70f710d3aa49c504c0b922f0e549bc885081986f40240cbeae0  lib/console.c
+fd1648f0603b14975fb66cd87d21a499f2c01f6b64630fcfde78b885d7e7085a  lib/memory.c
+258a74bc1571931174d8d9e899201b70f51329863518b56cb04dc062ccf63839  lib/sbi.c
+450f603388108f831b4bb577c5ab0926d713ce846d73e46c06e8ba1fcfcf3977  linker.ld
+b1239416baabdb5285dfdce9fd3fd64c6109123e7aa98190e416239a63176dc0  mm/page.c
+ef25ca11e9fa4253a53d40d3eee6010ecac8ca44084f8c5a362a6eb838877297  mm/user_vm.c
+a3406f65c48c7a593c3dd9379962990c31384d1b0c65cb0ad4d33e28f49a0e21  mm/vm.c
+ff0eb127ac1721b1c420cf24935847fa2d68da7524bdf7a0d73ae6c6299a23b4  monitor/diagnostics.c
+027387c8ef9e8b153b8263f2121619d1fcec7c3caab8f8d5b0de198125417eea  monitor/monitor.c
+4a0b4217bd1cd0c021286706c3b93ea01dfe52e945edc50946f083cb21ea3e74  proc/process.c
+2bc70c6df4203067c7a7a0f3da3c04649848767bbfa7721fc1ec31fb31c5f400  syscall/dispatch.c
+515edc94faa8cd9170f628091bf63407f7566711ef6a3c16a129960b84542d2a  tests/selftest.c
+7fafa28c3b7d26936ec9c7fca37459c79b02b0a7df8ed6b50d2b88853796ad91  tests/user_memory.c
+598f5e13a44ef5c96a4d262a85384984b60582733bd61a9b30d60bb33265e23d  tests/user_process.c
+81abe1a54721ca3a8b7530291b5060b62664767c20f071b8f429682a6cb075c5  trap/context.S
+e0e5068a8f3ec4ae6ce67b114f930e35a613bc80004a8d1e5296bf68d08d5958  trap/entry.S
+12864261a65b546f261362e79ea70589bfba4631b94161deb8484512f5fe611d  trap/trap.c
+39ff96cc55128c17d3ba407afe45297ed8fec0f120e386ef1f35577fe32b546e  trap/user_entry.S
+9dc1a1987feebd80d63d4e99cbe285983639240ea20d11f8a96c68b17df35b30  trap/user_trap.c
+c879ea3e8938f980d1f63b0a2f166b5d8e052710545dd22cc7d723974ed693e7  user/first.c
+af027d975b2abb2d6b15941e79e68ff23d51f979824fad8e0e49236d710ae73c  user/image.S
+fe31e18f92d3f93c09502a25a0aac4edaeb1e03a51b5a4218138609a55a9520b  user/linker.ld
+9f8800877b62cc5042d4d6d9bbeee2bf52132881c4323704da9673db001edef0  user/register_probe.S
+69a248aefc86158941e1f236f0faac2edbfedf53a3c6941ac03e5b284881abc5  user/start.S

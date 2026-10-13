@@ -1,4 +1,4 @@
-Agent-run UART observation, started 2026-10-08T10:13:46.013410+00:00
+Agent-run UART observation, started 2026-10-13T13:27:05.376125+00:00
 $ qemu-system-riscv64 -machine virt -bios default -kernel /home/zpg/Work/PugeZhang/lab3/build/cpu2/kernel.elf -m 128M -smp 2 -nographic -monitor none
 
 
@@ -221,13 +221,13 @@ pgos> vm
 [vm] FIRMWARE va=0x80000000 unmapped
 [vm] CLINT va=0x2000000 unmapped
 pgos> ticks
-[ticks] hart=0 count=39
-[ticks] hart=1 count=39
+[ticks] hart=0 count=41
+[ticks] hart=1 count=41
 pgos> ticks
-[ticks] hart=0 count=78
-[ticks] hart=1 count=78
+[ticks] hart=0 count=81
+[ticks] hart=1 count=81
 pgos> irq
-[irq] uart_rx=46 bytes=47 dropped=0
+[irq] uart_rx=47 bytes=47 dropped=0
 pgos> echo CRLF_OK
 [echo] CRLF_OK
 pgos> echo FIXx ED
@@ -245,6 +245,6 @@ pgos> echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 pgos> echo RECOVERED
 [echo] RECOVERED
 pgos> irq
-[irq] uart_rx=675 bytes=681 dropped=0
+[irq] uart_rx=677 bytes=681 dropped=0
 pgos> quit
 [shutdown]

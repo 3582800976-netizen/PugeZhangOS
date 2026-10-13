@@ -10,7 +10,7 @@ state:
     '2': WRITE
     '3': REPORT
     '4': EXIT
-    '5': TICKS
+    '5': TICKS：本进程实际 U 模式 timer 中断次数
   errors:
     bad_user_pointer: -14
     invalid_length: -22
