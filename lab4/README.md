@@ -133,6 +133,8 @@ python3 scripts/check.py --lab 4 --cpus 1,2,3,8
 
 构建固定使用 `-mcmodel=medany`、`-mno-relax` 和整数 ABI；当前内核没有依赖 `gp` 寻址，也没有浮点现场。若以后改变这些编译约束，须重新审核用户进入内核时的寄存器契约。
 
-规格提交先于源码实现。该规格由 Agent 起草，函数解释和本人操作尚未冒充完成：[分工说明](spec/README.md)。你可以亲手运行上面的正常程序和 UART 错误程序，观察相同系统如何处理两种结果，再用自己的话说明 `user_vm_create`、`process_run`、`trap_user_return`。真实内容写到本阶段 `docs/NOTES.md`，不预填个人经历。
+2026-10-14 本人提供了三核运行的[原始终端输出](docs/evidence/cpu3/manual-runtime-20261014.log)，包含 `user`、`user 2`、`echo still-alive` 和 `utest`。正常程序报告 5050、退出 0；非法 UART 读取产生 cause 13，随后诊断台继续响应；两轮全部模式与内存检查通过，失败数为 0。该日志由 Agent 按本人提供的原文归档，没有替本人填写理解说明。
+
+规格提交先于源码实现。该规格由 Agent 起草，个人函数解释仍待补充：[分工说明](spec/README.md)。现在可以对照实际输出，用自己的话说明 `user_vm_create`、`process_run`、`trap_user_return`。真实理解写到本阶段 `docs/NOTES.md`，有内容时再创建。
 
 [系统框架](../ARCHITECTURE.md) · [后续 Lab 5](../lab5/README.md)
