@@ -13,7 +13,7 @@ Lab 1–4 各有自己的完整源码、Makefile 和说明；Lab 5–9 保留目
 | Lab 2 | 内核怎样分配物理页、建立受权限保护的页表 | [Lab 2 说明](lab2/README.md) |
 | Lab 3 | 时钟和输入怎样打断程序，处理后继续执行 | [Lab 3 说明](lab3/README.md) |
 | Lab 4 | 怎样运行第一个用户进程 | [Lab 4 说明](lab4/README.md) |
-| Lab 5 | 用户程序怎样调用内核服务、管理用户内存 | [Lab 5 规划](lab5/README.md) |
+| Lab 5 | 用户程序怎样申请、释放和复用堆内存 | [Lab 5 要求与规划](lab5/README.md) |
 | Lab 6 | 怎样调度进程、处理创建和结束 | [Lab 6 规划](lab6/README.md) |
 | Lab 7 | 怎样读写磁盘并缓存数据块 | [Lab 7 规划](lab7/README.md) |
 | Lab 8 | 怎样由路径找到 inode 和目录项 | [Lab 8 规划](lab8/README.md) |

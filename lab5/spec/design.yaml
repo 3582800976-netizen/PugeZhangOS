@@ -1,0 +1,52 @@
+system:
+  name: PugeZhangOS Lab 5
+  goal: 真正的 U 模式程序可申请、读写、释放并复用用户堆
+  platform: QEMU virt, OpenSBI, 128MiB, Sv39, CPUS=1/2/3/8
+  execution_owner: 仍只有 boot leader 执行一个进程，其余核心处理自身中断
+provenance:
+  source: 课程 Lab 5 PDF 第 3–7 页
+  author: Agent 起草，本人契约解释待补；不冒充课程原件
+  date: 2026-10-22 Asia/Shanghai
+inherit:
+- Lab 4 独立完整源码，保护原 Lab 1–4 阶段版本
+- 用户代码0x1000、数据0x2000、堆起点0x3000、固定高地址栈与跳板
+- 单页用户代码与数据，完整整数现场、用户 tp 校验、真实中断与隔离
+heap:
+  base: '0x3000'
+  pages: 1024
+  limit_exclusive: '0x403000'
+  page_bytes: 4096
+  permissions: 用户可读写、不可执行，初始无映射，每次分配清零
+  free_regions: 按地址排序的 mmap_region_t 链表，begin/npages/next
+  pcb_head: mmap_region_t *mmap
+  node_repository: 32 个 mmap_region_node_t 全局共享节点，以锁保护取还
+  allocation: hint=0 首次适配；非零hint为精确页对齐地址，不偷偷移动
+  release: 允许已分配堆区的完整页子范围；任一页空闲或非法则整体拒绝
+  invariant: 空闲区非空、对齐、有序、不重叠且不相邻；其补集等于自有堆映射
+ownership:
+  metadata: user_heap_destroy 仅归还所有链表节点
+  mappings_and_frames: user_vm_destroy 释放自有堆叶及页表；借用 tf/kstack/trampoline 不释放
+  dynamic_leaf: Sv39 RSW 私有位标记归属，用户不能修改页表
+  synchronization: 进程与其页表只有拥有者访问，syscall时关闭本核中断；仓库取还短锁
+syscalls:
+  inherited: 1 GETPID, 2 WRITE, 3 REPORT, 4 EXIT, 5 TICKS
+  '6': HEAP_ALLOC(a0=npages,a1=hint)，返回地址或负错误
+  '7': HEAP_FREE(a0=begin,a1=npages)，返回0或负错误
+  '8': HEAP_INFO(a0=用户目标地址,a1=结构大小)，安全copyout返回真实快照
+  '9': HEAP_DUMP(a0=阶段标签)，只读打印当前真实空闲区
+  info_fields: base,limit,total_pages,free_pages,allocated_pages,regions,largest_free_pages,node_free
+  errors: EINVAL=-22, ENOMEM=-12, EFAULT=-14, ENOSYS=-38
+  abi: a7编号，a0..a2参数，a0返回；ecall保存自身PC，仅该调用路径推进4字节
+rules:
+- 分配先验证和预留分割节点，再事务映射，最后提交空闲表
+- 释放先检查全部页面并预留必要节点，随后取消映射并合并空闲区
+- 失败不改变旧数据、映射、空闲表与可用资源数；历史分配计数允许反映回滚
+- 每次取消映射回收空的中间页表，避免循环泄露
+- copyin/copyout 两遍遍历，先检查整个范围；失败目标缓冲区无部分改动
+- 用户指针不直接解引用，SUM保持关闭；堆无法覆盖代码、栈、设备或内核
+- 用户非法访问只结束该进程，回到诊断台后仍可运行其他命令
+- 堆地图读取真实状态，不预置演示输出
+non_goals:
+- 多进程调度、fork/exec、文件系统、C++运行库或完整POSIX mmap
+- malloc的字节级子分配器
+- 实体VisionFive 2适配与本人操作证据

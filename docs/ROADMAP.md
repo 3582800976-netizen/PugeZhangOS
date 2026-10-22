@@ -2,7 +2,7 @@
 
 这是一条连续的建设路线。前一个阶段的代码和接口会成为下一个阶段的基础，各实验目录保留完整阶段版本。
 
-课程主题来自 [Lab 0 总体安排](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-0.pptx)。2026-10-13 已核对公开的 Lab 0–4 课件；[Lab 4 原件](../lab4/docs/reference/README.md)已经下载，规划按它调整。Lab 5–9 的具体接入方式待对应详细要求确认。
+课程主题来自 [Lab 0 总体安排](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-0.pptx)。2026-10-20 已核对公开的 Lab 0–5 课件；[Lab 4 原件](../lab4/docs/reference/README.md)与 [Lab 5 原件](../lab5/docs/reference/README.md)已经下载，规划按正式内容调整。Lab 6–9 的具体接入方式待对应详细要求确认。
 
 ## 1. 全部阶段
 
@@ -13,7 +13,7 @@
 | Lab 2 | 怎样分配并保护内存 | mm：物理页、Sv39、映射权限 | [已实现](../lab2/README.md) |
 | Lab 3 | 怎样接收事件并继续执行 | trap、PLIC、串口接收、每核时钟 | [已实现](../lab3/README.md) |
 | Lab 4 | 怎样运行第一个用户进程 | PCB、用户页表、首次 context 切换、U/S 往返与最小系统调用；先完善 Spec | [已实现，QEMU 四种核数通过](../lab4/README.md) |
-| Lab 5 | 用户程序怎样请求内核服务 | syscall；参数检查、用户虚拟内存与复制 | [规划](../lab5/README.md) |
+| Lab 5 | 用户程序怎样申请、释放和复用堆内存 | 堆空闲区链表、共享节点仓库、分割与合并；扩展带参数系统调用 | [课件已核对，未实现](../lab5/README.md) |
 | Lab 6 | 多个程序怎样共享 CPU、创建和结束 | 调度、上下文切换、睡眠/唤醒、生命周期 | [规划](../lab6/README.md) |
 | Lab 7 | 怎样读写磁盘并复用数据块 | 磁盘驱动、块缓存、I/O 完成通知 | [规划](../lab7/README.md) |
 | Lab 8 | 怎样由路径找到文件内容 | fs：inode、目录项、路径解析 | [规划](../lab8/README.md) |

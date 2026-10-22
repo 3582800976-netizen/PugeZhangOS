@@ -1,0 +1,27 @@
+module: user heap
+owns: [mm/user_heap.c, include/user_heap.h, tests/user_heap.c]
+functions:
+  user_heap_pool_init:
+    pre: 单次全局启动，尚无进程使用节点
+    effects: 建立共享节点仓库与锁
+    post: 全部32个节点可用
+  user_heap_create:
+    pre: process为空闲表未初始化的可信内核对象
+    effects: 申请一个节点记录完整堆区
+    post: 成功表头有效；失败无节点泄露且返回ENOMEM
+  user_heap_alloc:
+    pre: p的堆已初始化，hint为0或精确地址，npages非0，budget为-1或非负
+    effects: 首次适配或精确选择；必要时预留分割节点；调用原子VM映射，再提交链表
+    post: 成功返回自有RWU/NX零页范围；失败out不变、所有可用资源与旧状态不变
+  user_heap_free:
+    pre: p的堆已初始化，范围为整页
+    effects: 拒绝任意空闲重叠与坏映射；预留节点；取消映射；插入或合并相邻空闲区
+    post: 成功空闲表已完全合并且物理页和空页表回收；失败全无变更
+  user_heap_snapshot:
+    pre: 可信内核目标缓冲区，只有进程拥有者访问链表
+    effects: 读取真实空闲区与共享仓库余额
+    post: 返回总页、可用页、已映射页、区间数、最大空闲段、节点余额与区间数组
+  user_heap_destroy:
+    pre: 进程不再运行，或创建失败需要回滚
+    effects: 仅归还元数据节点，映射由随后user_vm_destroy处理
+    post: 表头为0；空表重复销毁无副作用

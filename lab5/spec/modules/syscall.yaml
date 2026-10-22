@@ -1,0 +1,19 @@
+module: user service and process lifecycle
+owns: [syscall/dispatch.c, syscall/memory.c, include/syscall.h, proc/process.c, user/first.c]
+functions:
+  process_run:
+    pre: boot leader，无其他运行进程，模式合法
+    effects: 创建用户VM和堆；进入真实U模式；退出或故障后先归还堆节点再销毁VM
+    post: 返回真实结果，两页池和节点仓库恢复；用户模式0至7语义保留
+  syscall_dispatch:
+    pre: 真实U陷入现场，与当前进程的可信trapframe相同
+    effects: 读取a7及参数；调用所属模块；只经copyin/copyout访问用户数据
+    post: a0含地址、0或负错误；未知编号不panic
+  HEAP_INFO:
+    pre: 请求来自当前进程，a1必须等于公开结构大小
+    effects: 构造可信内核快照，安全写入用户目标
+    post: 写入完整快照或返回EINVAL/EFAULT且目标不变
+  HEAP_DUMP:
+    pre: 当前进程存在
+    effects: 打印实际区间与统计，不向用户暴露内核指针
+    post: 内存状态与资源余额不变

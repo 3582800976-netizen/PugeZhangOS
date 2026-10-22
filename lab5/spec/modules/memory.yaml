@@ -1,0 +1,23 @@
+module: dynamic user VM
+owns: [mm/user_vm.c, include/user_vm.h, tests/user_memory.c]
+functions:
+  user_vm_heap_alloc:
+    pre: 可信vm，完整合法堆范围，budget=-1或非负；只有单拥有者使用页表
+    effects: 先验证整段未映射；从PAGE_USER申请零页，必要时申请PAGE_KERNEL页表
+    post: 成功各页RWU/NX且标记自有；失败归还所有本次用户页与中间页表，不影响旧映射
+  user_vm_heap_free:
+    pre: 可信vm，完整合法堆范围
+    effects: 先验证每页均为自有堆页，然后清除PTE、回收帧和空中间表，刷新地址翻译
+    post: 成功全部取消；若任何页非法则不修改任何页
+  user_vm_copyout:
+    pre: src为可信内核缓冲区且长度足够，vm独占稳定
+    effects: 先检查整个用户目标范围的U/W权限、地址溢出和物理页归属，再按物理别名复制
+    post: 成功完整写入；失败用户目标无改动；len=0不访问指针
+  user_vm_copyin:
+    pre: dst可信，vm独占稳定
+    effects: 沿用逐页完整预检，补充用户叶物理地址所属池检查
+    post: 失败dst无改变
+  user_vm_destroy:
+    pre: 所有核心已不使用该用户根页表
+    effects: 释放标记自有的动态堆叶、三个固定用户页以及全部页表页
+    post: 空对象，借用内核帧仍有效，未显式free的用户堆也不泄露
