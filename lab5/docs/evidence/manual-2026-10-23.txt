@@ -1,0 +1,12 @@
+# Lab 5 手动运行记录
+
+来源：用户在 2026-10-23 的对话中粘贴的 QEMU 终端输出。此文件是输出摘要，不是完整原始日志。
+
+命令：`make -C lab5 qemu CPUS=3`
+
+- 在 `pgos>` 输入 `heap`：用户态程序输出 `heap-ok`，展示 7 张堆空闲区地图，最终退出状态为 0 并返回 `pgos>`。
+- 在 `pgos>` 输入 `htest`：所有堆分配、分割、释放合并、失败原子性、节点耗尽、回收与资源平衡检查均为 `PASS`；`[htest] summary failures=0`。
+- 随后的用户态堆与保护检查两轮均通过；释放页读取、写入、执行分别报告预期的 cause 13、15、12。
+- 最终输出 `[huser] summary failures=0`、`[heap-check] failures=0`，仍返回 `pgos>`。
+
+该记录来自用户展示的本机 QEMU 三核运行；VisionFive 2 实板尚未验证。

@@ -4,7 +4,7 @@ ECNU OSLab 2026：参考 xv6 的原理，用 C 和 RISC-V 从启动、内存管�
 
 **先读 [整个操作系统的架构](ARCHITECTURE.md)，再看 [Lab 0–9 建设路线](docs/ROADMAP.md)，最后进入当前实验。**
 
-Lab 1–4 各有自己的完整源码、Makefile 和说明；Lab 5–9 保留目标与接入规划，尚未实现。实验目录区分阶段，模块目录区分职责。
+Lab 1–5 各有独立源码、Makefile 和说明；Lab 6–9 保留目标与接入规划。实验目录区分阶段，模块目录区分职责。
 
 | 实验 | 本次解决什么问题 | 从哪里开始 |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ Lab 1–4 各有自己的完整源码、Makefile 和说明；Lab 5–9 保留目
 | Lab 2 | 内核怎样分配物理页、建立受权限保护的页表 | [Lab 2 说明](lab2/README.md) |
 | Lab 3 | 时钟和输入怎样打断程序，处理后继续执行 | [Lab 3 说明](lab3/README.md) |
 | Lab 4 | 怎样运行第一个用户进程 | [Lab 4 说明](lab4/README.md) |
-| Lab 5 | 用户程序怎样申请、释放和复用堆内存 | [Lab 5 要求与规划](lab5/README.md) |
+| Lab 5 | 用户程序怎样申请、释放和复用堆内存 | [Lab 5 实现说明](lab5/README.md) |
 | Lab 6 | 怎样调度进程、处理创建和结束 | [Lab 6 规划](lab6/README.md) |
 | Lab 7 | 怎样读写磁盘并缓存数据块 | [Lab 7 规划](lab7/README.md) |
 | Lab 8 | 怎样由路径找到 inode 和目录项 | [Lab 8 规划](lab8/README.md) |
@@ -41,7 +41,8 @@ PugeZhang/
 ├── lab2/              同样结构；新增 mm/ 物理页、Sv39 和权限验证
 ├── lab3/              同样结构；增加 PLIC、串口中断和时钟
 ├── lab4/              新增 spec/、proc/、syscall/、user/，首个用户进程
-├── lab5/ … lab9/       后续阶段规划；实现时继承前一实验的完整基础
+├── lab5/              独立继承 Lab 4；动态堆、空闲区管理和带参数系统调用
+├── lab6/ … lab9/       后续阶段规划；实现时继承前一实验的完整基础
 ├── scripts/check.py   自动构建、驱动 QEMU、收集各实验日志
 ├── docs/              全系统路线、开发约定与课程依据
 ├── extras/host-shell/  早期宿主 Linux Shell 练习
@@ -59,9 +60,10 @@ make -C lab1 qemu CPUS=3
 make -C lab2 qemu CPUS=3
 make -C lab3 qemu CPUS=3
 make -C lab4 qemu CPUS=3
+make -C lab5 qemu CPUS=3
 ```
 
-也可以 `cd lab1` 后执行 `make qemu`，Lab 2–4 同理。默认三核，`CPUS` 支持 1–8。编译产物分别存放在各实验的 `build/cpuN/`，不会混用。
+也可以进入对应实验目录后执行 `make qemu`。默认三核，`CPUS` 支持 1–8。编译产物分别存放在各实验的 `build/cpuN/`，不会混用。
 
 进入 `pgos>` 后输入 `help` 查看**本实验**的命令，输入 `quit` 退出。这里是内核诊断台。Lab 4 的 `user` 命令会启动真正的 U 模式程序；文件系统和用户 Shell 仍是后续实验。
 
@@ -74,7 +76,8 @@ make -C lab1 check          # 只检查 Lab 1 的 1、2、3、8 核
 make -C lab2 check          # 只检查 Lab 2
 make -C lab3 check          # 只检查 Lab 3
 make -C lab4 check          # 检查用户进程、保护与回收
-make check                 # 检查四个实验全部 16 个配置
+make -C lab5 check CHECK_CPUS=3 # 检查 Lab 5 三核功能
+make check                  # 检查 Lab 1–5，默认每个 1、2、3、8 核
 ```
 
 单一配置可用 `python3 scripts/check.py --lab 2 --cpus 3`。检查包含重新编译、ELF 入口、多核启动、自检、真实串口交互和正常退出；Lab 2 加入页池与 MMU 检查，Lab 3 加入每核时钟与串口中断计数；Lab 4 加入真实用户执行、完整现场、保护异常、用户期间时钟与 UART 中断及资源回收。
@@ -85,11 +88,12 @@ make check                 # 检查四个实验全部 16 个配置
 - [Lab 2](lab2/docs/evidence/summary.txt)
 - [Lab 3](lab3/docs/evidence/summary.txt)
 - [Lab 4](lab4/docs/evidence/summary.txt)
+- [Lab 5](lab5/docs/evidence/summary.txt)
 
 
 各实验的 `docs/evidence/cpuN/` 分别保存 `build.log`、`elf.log` 和 `runtime.log`；独立构建证明在同一实验的 `docs/evidence/standalone-build.log`。`make check` 的总体结果打印到终端，每个实验保存自己的汇总。
 
-**2026-10-13：Lab 1–4 的 1、2、3、8 核共 16 个配置均通过，0 个失败。** Lab 4 额外验证用户期间的 UART 中断、六种保护异常、逐点分配失败和资源回收，并已复制到仓库外独立构建内核与用户 ELF。
+**已保存的验收记录：** Lab 1–4 的 1、2、3、8 核共 16 个配置通过；Lab 5 在 2026-10-22 通过 QEMU 三核验收。Lab 5 记录覆盖堆分配、跨页读写、空闲区分割/合并/复用、失败回滚、权限故障和资源回收；其他核数尚未记录。
 
 支持环境为 QEMU `virt`、128 MiB RAM；已验证的工具为 QEMU 5.1.0、默认 OpenSBI 0.7、RISC-V GCC 13.3.0。Lab 1 自己完成 M→S 切换；Lab 2–4 由 OpenSBI 提供 S 模式入口。两个启动方式的加载地址与代码分别固定在各自目录。
 
@@ -97,9 +101,9 @@ make check                 # 检查四个实验全部 16 个配置
 
 [系统架构](ARCHITECTURE.md)解释完整模块及未来接入边界；[开发约定](docs/DEVELOPMENT.md)说明后续阶段怎样接续。源码阅读顺序、实验说明和验收现象分别写在对应 Lab 的 README 中。
 
-小巧思也按阶段区分：Lab 1 的每核启动记录，Lab 2 的页归还检查与虚拟地址翻译窗口，Lab 3 的真实中断计数，Lab 4 的进程启动卡与“错误只结束进程”的现场展示。它们用于观察实际状态。
+小巧思也按阶段区分：Lab 1 的每核启动记录，Lab 2 的页归还检查与虚拟地址翻译窗口，Lab 3 的真实中断计数，Lab 4 的进程启动卡，Lab 5 的实时堆空闲区地图。它们用于观察实际状态。
 
-[Lab 0 本人实验记录](lab0/docs/NOTES.md)保留真实的 xv6 操作与理解。后续个人记录随对应实验放在 `labN/docs/NOTES.md`，有实际记录时再创建。本轮内核实现、分目录整理和自动验证由 Agent 完成，记录归属如实保留。
+[Lab 0 本人实验记录](lab0/docs/NOTES.md)保留真实的 xv6 操作与理解。后续个人记录随对应实验放在 `labN/docs/NOTES.md`，有实际记录时再创建。Lab 1–5 内核由 Agent 协助实现；Lab 5 规格说明本人理解和板上操作尚待补充，记录归属如实保留。
 
 过期设计和日志已移出当前项目，旧版本仍可通过 Git 历史查看。实验资料与日志归对应 Lab，根 `docs/` 仅保存全系统文档。GitHub 的 `main` 首页用于整体框架和全阶段索引，`lab-3` 保留已验收的 Lab 3 基础版本。
 

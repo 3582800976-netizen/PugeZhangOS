@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and independently exercise Lab 1–4 through the emulated UART.
+"""Build and independently exercise Lab 1–5 through the emulated UART.
 
 Only the Python standard library and the existing RISC-V/QEMU tools are used.
 The monitor runs inside the kernel; it is not a user process or a Unix shell.
@@ -23,7 +23,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 PROMPT = b"pgos> "
-PANIC = re.compile(r"(?:\[PANIC\]|PANIC:|^\[FAIL\]|\[test\][^\n]*\bFAIL\b)", re.MULTILINE | re.IGNORECASE)
+PANIC = re.compile(r"(?:\[PANIC\]|PANIC:|^\[FAIL\]|\[(?:test|utest|htest|huser)\][^\n]*\bFAIL\b)", re.MULTILINE | re.IGNORECASE)
 
 
 class CheckFailure(Exception):
@@ -179,7 +179,7 @@ def check_elf(kernel: Path, lab: int, toolprefix: str, directory: Path) -> None:
     boot = re.search(r"^([0-9a-fA-F]+)\s+T\s+_boot$", readable(symbols.stdout), re.MULTILINE)
     require(boot is not None and int(boot[1], 16) == expected,
             f"_boot is not at the ELF entry {expected:#x}")
-    if lab == 4:
+    if lab >= 4:
         user = kernel.parent / "user" / "first.elf"
         user_argv = [toolprefix + "readelf", "-h", "-S", "-W", str(user)]
         user_elf = subprocess.run(user_argv, stdout=subprocess.PIPE,
@@ -293,11 +293,17 @@ def process_snapshot(reply: str, mode: int) -> dict[str, int | str]:
             require(result["report"] == 5050 and result["user_ticks"] >= 3,
                     f"user computation or real U timer interrupts missing: {result}")
             require("hello from U-mode" in reply, f"user WRITE did not print its message:\n{reply}")
+    elif mode == 8:
+        require(result["reason"] == "exit" and result["status"] == 0 and
+                result["report"] == 0x5005 and result["calls"] > 0,
+                f"real U-mode heap demonstration failed: {result}")
+        require(re.search(r"^heap-ok\r?$", reply, re.MULTILINE) is not None,
+                f"cross-page heap WRITE did not print its U-mode message:\n{reply}")
     else:
         addresses = {1: 0x80200000, 2: 0x10000000, 3: 0x1000,
                      4: 0x4000000000 - 12288, 5: 0x4000000000 - 8192,
-                     6: 0x4000000000 - 4096}
-        causes = {1: 13, 2: 13, 3: 15, 4: 12, 5: 13, 6: 13}
+                     6: 0x4000000000 - 4096, 9: 0x3000, 10: 0x3000, 11: 0x3000}
+        causes = {1: 13, 2: 13, 3: 15, 4: 12, 5: 13, 6: 13, 9: 13, 10: 15, 11: 12}
         fault = re.search(r"^\[proc-fault\] scause=(0x[0-9a-fA-F]+) "
                           r"sepc=(0x[0-9a-fA-F]+) stval=(0x[0-9a-fA-F]+)", reply, re.MULTILINE)
         require(result["reason"] == "fault" and fault is not None,
@@ -306,7 +312,10 @@ def process_snapshot(reply: str, mode: int) -> dict[str, int | str]:
         cause, pc, value = (int(item, 16) for item in fault.groups())
         require(cause == causes[mode] and value == addresses[mode],
                 f"wrong user fault evidence: mode={mode} cause={cause} value={value:#x}")
-        require(pc == addresses[4] if mode == 4 else 0x1000 <= pc < 0x2000,
+        if mode in (9, 10, 11):
+            require(result["calls"] >= (1 if mode == 11 else 2),
+                    f"heap fault mode did not first allocate/free through real syscalls: {result}")
+        require(pc == addresses[mode] if mode in (4, 11) else 0x1000 <= pc < 0x2000,
                 f"fault PC was outside the relevant user instructions: {pc:#x}")
     return result
 
@@ -374,6 +383,131 @@ def check_user_processes(machine: Machine) -> None:
             "UART-interrupted user run leaked pages")
 
 
+def check_heap_maps(reply: str, rounds: int = 1) -> None:
+    """Inspect snapshots of the actual free list at every U-demo operation."""
+    base, pages, page_size, node_count = 0x3000, 1024, 4096, 32
+    headers = list(re.finditer(
+        r"^\[heap-map\] tag=(\d+) base=(0x[0-9a-fA-F]+) limit=(0x[0-9a-fA-F]+) "
+        r"total=(\d+) free=(\d+) used=(\d+) regions=(\d+) largest=(\d+) nodes_free=(\d+)\r?$",
+        reply, re.MULTILINE,
+    ))
+    require(len(headers) == rounds * 7,
+            f"expected {rounds * 7} actual heap-map snapshots, saw {len(headers)}:\n{reply}")
+    expected = (
+        [(0, pages)],                         # Initial heap.
+        [(7, pages - 7)],                     # A=2, B=3, C=2 allocated.
+        [(2, 3), (7, pages - 7)],             # B released between A and C.
+        [(4, 1), (7, pages - 7)],             # First two B pages reused.
+        [(0, pages)],                         # All allocations released.
+        [(0, 20), (22, pages - 22)],          # Exact middle placement splits a region.
+        [(0, pages)],                         # Both free neighbors merge again.
+    )
+    free_row_count = 0
+    for ordinal, header in enumerate(headers):
+        fields = header.groups()
+        tag = int(fields[0])
+        actual_base, limit = int(fields[1], 16), int(fields[2], 16)
+        total, free, used, regions, largest, nodes_free = map(int, fields[3:])
+        require(tag == ordinal % 7, f"heap-map tags are incomplete or out of order: {tag}")
+        require(actual_base == base and limit == base + pages * page_size and total == pages,
+                f"heap-map bounds differ from the heap contract: {header.group(0)}")
+        end = headers[ordinal + 1].start() if ordinal + 1 < len(headers) else len(reply)
+        rows = re.findall(r"^\[heap-free\] tag=(\d+) index=(\d+) "
+                          r"begin=(0x[0-9a-fA-F]+) pages=(\d+)\r?$",
+                          reply[header.end():end], re.MULTILINE)
+        free_row_count += len(rows)
+        require(len(rows) == regions and all(int(row[0]) == tag for row in rows) and
+                [int(row[1]) for row in rows] == list(range(regions)),
+                f"heap-map free-list rows are missing, duplicated, or out of order: {rows}")
+        spans = [(int(row[2], 16), int(row[3])) for row in rows]
+        for begin, count in spans:
+            require(count > 0 and begin % page_size == 0 and
+                    base <= begin < begin + count * page_size <= limit,
+                    f"heap-map has an invalid free interval: {(begin, count)}")
+        require(all(left + count * page_size < right
+                    for (left, count), (right, _) in zip(spans, spans[1:])),
+                f"heap-map has overlapping or unmerged adjacent free intervals: {spans}")
+        require(free == sum(count for _, count in spans) and free + used == total and
+                largest == max((count for _, count in spans), default=0) and
+                nodes_free == node_count - regions,
+                f"heap-map resources do not match the actual free list: {header.group(0)} {spans}")
+        wanted = [(base + offset * page_size, count) for offset, count in expected[tag]]
+        require(spans == wanted,
+                f"heap-map tag {tag} does not show the expected split/merge/reuse: {spans} != {wanted}")
+    require(len(re.findall(r"^\[heap-free\]", reply, re.MULTILINE)) == free_row_count,
+            "heap-free rows appeared outside an actual heap-map snapshot")
+
+
+def check_user_heap(machine: Machine) -> None:
+    before = memory_snapshot(machine.command("mem"))
+    demo = machine.command("heap", timeout=20)
+    process_snapshot(demo, 8)
+    check_heap_maps(demo)
+    after = memory_snapshot(machine.command("mem"))
+    require(all(before[name][:3] == after[name][:3] for name in before),
+            f"heap demonstration leaked process resources: before={before}, after={after}")
+    check_echo(machine, b"echo HEAP_RETURNED\n", "HEAP_RETURNED")
+    for mode in (9, 10, 11):
+        process_snapshot(machine.command(f"user {mode}", timeout=20), mode)
+        after = memory_snapshot(machine.command("mem"))
+        require(all(before[name][:3] == after[name][:3] for name in before),
+                f"heap fault mode {mode} leaked resources: before={before}, after={after}")
+        check_echo(machine, f"echo HEAP_{mode}_RETURNED\n".encode(), f"HEAP_{mode}_RETURNED")
+
+    tests = machine.command("htest", timeout=30)
+    require("[htest] summary failures=0" in tests and
+            "[huser] summary failures=0" in tests and "[heap-check] failures=0" in tests,
+            f"heap production-path or repeated-U tests failed:\n{tests}")
+    for proof in ("production-create", "initial-region", "front-allocation", "middle-split", "end-allocation",
+                  "whole-region", "isolated-insert", "right-merge", "double-merge", "left-merge",
+                  "first-fit-skips-small", "zero-rwu-nx", "rollback-existing-data",
+                  "invalid-arguments-atomic", "occupied-hint-atomic", "duplicate-free-atomic",
+                  "partial-overlap-free-atomic", "failed-map-atomic", "collision-cleanup",
+                  "bad-later-leaf-free-atomic", "bad-leaf-cleanup", "node-exhaustion-setup",
+                  "node-exhaustion-create",
+                  "node-exhaustion-split-atomic", "node-exhaustion-insert-atomic",
+                  "node-exhaustion-edge-allocation", "node-exhaustion-adjacent-free",
+                  "node-exhaustion-whole-allocation", "node-exhaustion-recovery",
+                  "full-allocation-empty-head", "full-allocation-no-space", "full-allocation-release", "reuse-is-zero",
+                  "cross-2mib-reclaim-loops", "destroy-live-heap", "metadata-repeat-destroy",
+                  "borrowed-content-preserved", "resource-balance"):
+        require(f"[htest] {proof} PASS" in tests,
+                f"heap production-path proof missing: {proof}")
+    for budget in range(5):
+        require(f"[htest] allocation-budget={budget} PASS" in tests,
+                f"heap allocation rollback budget {budget} missing")
+    rows = re.findall(
+        r"^\[huser\] round=(\d+) mode=(\d+) reason=(\d+) status=(-?\d+) report=(\d+) "
+        r"origin=(\d+) cause=(0x[0-9a-fA-F]+) epc=(0x[0-9a-fA-F]+) "
+        r"value=(0x[0-9a-fA-F]+) PASS\r?$", tests, re.MULTILINE,
+    )
+    require(len(rows) == 8 and {(int(row[0]), int(row[1])) for row in rows} ==
+            {(round_, mode) for round_ in range(2) for mode in range(8, 12)},
+            f"repeated heap U-mode evidence missing:\n{tests}")
+    for row in rows:
+        _round, mode, reason, status, report, origin, cause, pc, value = row
+        mode_number = int(mode)
+        require(int(origin) > 0, "repeated heap run lacked U-origin evidence")
+        if mode_number == 8:
+            require(int(reason) == 0 and int(status) == 0 and int(report) == 0x5005,
+                    "repeated U-mode heap write/read/split/merge/reuse failed")
+        else:
+            expected_cause = {9: 13, 10: 15, 11: 12}[mode_number]
+            require(int(reason) == 1 and int(cause, 16) == expected_cause and
+                    int(value, 16) == 0x3000,
+                    f"repeated heap fault evidence is wrong: {row}")
+            require(int(pc, 16) == 0x3000 if mode_number == 11 else
+                    0x1000 <= int(pc, 16) < 0x2000,
+                    f"repeated heap fault PC is wrong: {row}")
+    check_heap_maps(tests, rounds=2)
+    require(len(re.findall(r"^heap-ok\r?$", tests, re.MULTILINE)) == 2,
+            "repeated heap U-mode cross-page WRITE evidence missing")
+    after = memory_snapshot(machine.command("mem"))
+    require(all(before[name][:3] == after[name][:3] for name in before),
+            f"heap tests leaked pages: before={before}, after={after}")
+    check_echo(machine, b"echo HTEST_RETURNED\n", "HTEST_RETURNED")
+
+
 def check_echo(machine: Machine, data: bytes, expected: str) -> None:
     reply = machine.command(data)
     require(re.search(r"^\[echo\] " + re.escape(expected) + r"\r?$", reply, re.MULTILINE)
@@ -413,8 +547,10 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
             commands += ["mem", "vm"]
         if lab >= 3:
             commands += ["ticks", "irq"]
-        if lab == 4:
+        if lab >= 4:
             commands += ["user", "utest", "proc"]
+        if lab >= 5:
+            commands += ["heap", "htest"]
         require(all(name in help_reply for name in commands),
                 "help omits supported diagnostic commands")
         tests = machine.command("test", timeout=15)
@@ -458,9 +594,13 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
             before_irq = irq_snapshot(machine.command("irq"))
             passed.append("SBI timer interrupts advance on every active hart")
 
-        if lab == 4:
+        if lab >= 4:
             check_user_processes(machine)
             passed.append("actual U execution+register/call/timer proofs; six contained protection faults; rollback and repeated page balance")
+
+        if lab >= 5:
+            check_user_heap(machine)
+            passed.append("actual U heap allocation/write/read/free; real split/merge/reuse maps; freed/NX faults; rollback and page/node balance")
 
         check_echo(machine, b"echo CRLF_OK\r\n", "CRLF_OK")
         check_echo(machine, b"echo FIXx\bED\n", "FIXED")
@@ -494,7 +634,7 @@ def exercise(lab: int, cpus: int, qemu: str, kernel: Path, directory: Path) -> l
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--lab", choices=("1", "2", "3", "4", "all"), default="all")
+    parser.add_argument("--lab", choices=("1", "2", "3", "4", "5", "all"), default="all")
     parser.add_argument("--cpus", default="1,2,3,8", help="comma-separated CPU counts from 1 to 8")
     parser.add_argument("--qemu", default=os.environ.get("QEMU", "qemu-system-riscv64"))
     parser.add_argument("--toolprefix", default=os.environ.get("TOOLPREFIX", "riscv64-linux-gnu-"))
@@ -508,7 +648,7 @@ def main() -> int:
         parser.error("--cpus must contain comma-separated integers")
     if not cpus or any(count < 1 or count > 8 for count in cpus):
         parser.error("CPU counts must be from 1 to 8")
-    labs = [1, 2, 3, 4] if args.lab == "all" else [int(args.lab)]
+    labs = [1, 2, 3, 4, 5] if args.lab == "all" else [int(args.lab)]
     started = datetime.datetime.now(datetime.timezone.utc).isoformat()
     failures = 0
     for lab in labs:

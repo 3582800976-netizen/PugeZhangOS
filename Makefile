@@ -6,8 +6,8 @@ CHECK_CPUS ?= 1,2,3,8
 ifeq ($(strip $(LAB)),)
 .DEFAULT_GOAL := help
 else
-ifeq ($(filter $(LAB),1 2 3 4),)
-$(error Only Lab 1-4 are implemented; see lab5/README.md to lab9/README.md for future plans)
+ifeq ($(filter $(LAB),1 2 3 4 5),)
+$(error Only Lab 1-5 are implemented; see lab6/README.md to lab9/README.md for future plans)
 endif
 .DEFAULT_GOAL := all
 endif
@@ -15,13 +15,14 @@ endif
 .PHONY: help all qemu qemu-gdb check clean
 help:
 	@echo "Architecture: ARCHITECTURE.md; roadmap: docs/ROADMAP.md"
-	@echo "Lab 1-4 are implemented; Lab 5-9 contain plans, pending implementation."
+	@echo "Lab 1-5 are implemented; Lab 6-9 contain plans, pending implementation."
 	@echo "Each implemented lab has independent sources, a Makefile and a README."
 	@echo "Build:   make -C lab1"
 	@echo "Run:     make -C lab1 qemu CPUS=3"
 	@echo "         make -C lab2 qemu CPUS=3"
 	@echo "         make -C lab3 qemu CPUS=3"
 	@echo "         make -C lab4 qemu CPUS=3"
+	@echo "         make -C lab5 qemu CPUS=3"
 	@echo "Check:   make -C lab1 check"
 	@echo "All:     make check"
 	@echo "Compatibility: make qemu LAB=1 CPUS=3"
@@ -38,3 +39,4 @@ clean:
 	$(MAKE) -C lab2 clean
 	$(MAKE) -C lab3 clean
 	$(MAKE) -C lab4 clean
+	$(MAKE) -C lab5 clean
