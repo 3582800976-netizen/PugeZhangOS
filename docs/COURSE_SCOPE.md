@@ -1,10 +1,12 @@
 # 课程依据与规划边界
 
-核对日期：2026-10-20（Asia/Shanghai）。
+核对日期：2026-10-28（Asia/Shanghai）。
 
-读取来源：[课程仓库 README](https://gitee.com/christinaaa/ecnu-oslab-2026-task)、[Lab 0 总体安排课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-0.pptx)、[Lab 4 详细课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-4.pptx)、[Lab 5 详细课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-5.pdf)。通过公开 Gitee 内容 API 读取目录与 README；此前已核对 Lab 0 与 Lab 4。本次下载 Lab 5 原始 PDF，提取全部 7 页文字并查看第 3–6 页图示。本地原件与校验信息位于 [Lab 4 参考资料](../lab4/docs/reference/README.md)及 [Lab 5 参考资料](../lab5/docs/reference/README.md)。
+本项目先前归档的资料来自 [旧课程仓库](https://gitee.com/christinaaa/ecnu-oslab-2026-task)：[Lab 0 总体课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-0.pptx)、[Lab 4 课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-4.pptx)、[Lab 5 课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-5.pdf)。旧资料的获取和校验过程见 [Lab 4 参考资料](../lab4/docs/reference/README.md)与 [Lab 5 参考资料](../lab5/docs/reference/README.md)。
 
-公开 `lab-ppt/` 当前已有 Lab 0–5 的详细课件，Lab 5 为 PDF，其他为 PPTX。Lab 5 实现已按正式课件更新；Lab 6–9 的主题仍来自总览，具体接入方式待各自详细课件确认。本项目的候选目录和函数名不等于课程提供的源码框架。
+2026-10-28 查看 [ECNU 计算机学院课程页](https://faculty.ecnu.edu.cn/_s16/wj2_28130/main.psp)时，页面列出的 2026 秋季操作系统实验仓库已是 [HzHzHz52/ecnu-oslab-2026-task](https://gitee.com/HzHzHz52/ecnu-oslab-2026-task)。本次无法读取该仓库目录（Gitee 页面检索不可用，Git 只读连接超时），因此尚不能确认它与旧仓库的关系，也不能据此断言是否已发布 Lab 6 新任务。后续核对应以课程页列出的地址为准；在重新核验前，保留本地课件与旧仓库链接作为历史来源。
+
+此前下载时，旧仓库的 `lab-ppt/` 已有 Lab 0–5 详细课件；Lab 5 为 PDF，其他为 PPTX。由于新课程仓库目录尚未核验，Lab 6–9 的详细要求和任务发布状态目前未知。本项目的候选目录和函数名不等于课程提供的源码框架。
 
 | 课程阶段 | 总体内容 |
 | --- | --- |

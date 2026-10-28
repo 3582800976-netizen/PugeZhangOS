@@ -655,7 +655,7 @@ def main() -> int:
         directory = (args.evidence / f"lab{lab}" if args.evidence else
                      ROOT / f"lab{lab}" / "docs" / "evidence")
         directory.mkdir(parents=True, exist_ok=True)
-        lab_summary = [f"Agent-run Lab {lab} runtime verification. Started at {started}",
+        lab_summary = [f"Automated Lab {lab} runtime verification. Started at {started}",
                        f"Independent sources: lab{lab}/.",
                        "Monitor is S-mode kernel code, not a user shell.", ""]
         lab_failures = 0

@@ -93,7 +93,7 @@ make check                  # 检查 Lab 1–5，默认每个 1、2、3、8 核
 
 各实验的 `docs/evidence/cpuN/` 分别保存 `build.log`、`elf.log` 和 `runtime.log`；独立构建证明在同一实验的 `docs/evidence/standalone-build.log`。`make check` 的总体结果打印到终端，每个实验保存自己的汇总。
 
-**已保存的验收记录：** Lab 1–4 的 1、2、3、8 核共 16 个配置通过；Lab 5 在 2026-10-22 通过 QEMU 三核验收。Lab 5 记录覆盖堆分配、跨页读写、空闲区分割/合并/复用、失败回滚、权限故障和资源回收；其他核数尚未记录。
+**已保存的验收记录：** Lab 1–4 的 1、2、3、8 核共 16 个配置通过；Lab 5 于 2026-10-22 和 2026-10-28 两次通过 QEMU 三核验收。Lab 5 记录覆盖堆分配、跨页读写、空闲区分割/合并/复用、失败回滚、权限故障和资源回收；其他核数尚未记录。
 
 支持环境为 QEMU `virt`、128 MiB RAM；已验证的工具为 QEMU 5.1.0、默认 OpenSBI 0.7、RISC-V GCC 13.3.0。Lab 1 自己完成 M→S 切换；Lab 2–4 由 OpenSBI 提供 S 模式入口。两个启动方式的加载地址与代码分别固定在各自目录。
 
@@ -107,4 +107,4 @@ make check                  # 检查 Lab 1–5，默认每个 1、2、3、8 核
 
 过期设计和日志已移出当前项目，旧版本仍可通过 Git 历史查看。实验资料与日志归对应 Lab，根 `docs/` 仅保存全系统文档。GitHub 的 `main` 首页用于整体框架和全阶段索引，`lab-3` 保留已验收的 Lab 3 基础版本。
 
-参考：[ECNU 课程任务](https://gitee.com/christinaaa/ecnu-oslab-2026-task)。旁边的 `../xv6-labs-2020/` 用于参考，当前内核不链接其代码。
+课程入口：[ECNU 2026 秋季操作系统实验仓库](https://gitee.com/HzHzHz52/ecnu-oslab-2026-task)。旁边的 `../xv6-labs-2020/` 用于参考，当前内核不链接其代码。
