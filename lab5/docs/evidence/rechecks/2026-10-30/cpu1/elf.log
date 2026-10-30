@@ -1,0 +1,276 @@
+$ riscv64-linux-gnu-readelf -h /home/zpg/Work/PugeZhang/lab5/build/cpu1/kernel.elf
+
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           RISC-V
+  Version:                           0x1
+  Entry point address:               0x80200000
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          294560 (bytes into file)
+  Flags:                             0x1, RVC, soft-float ABI
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         4
+  Size of section headers:           64 (bytes)
+  Number of section headers:         18
+  Section header string table index: 17
+
+$ riscv64-linux-gnu-nm -n /home/zpg/Work/PugeZhang/lab5/build/cpu1/kernel.elf
+
+0000000080200000 T _boot
+0000000080200000 T _text_start
+0000000080200088 T context_switch
+00000000802000f4 T kernel_vector
+00000000802001a0 T trap_register_probe
+00000000802001e4 T trap_breakpoint_site
+0000000080200278 T trap_load_fault_site
+0000000080200278 T trap_load_probe
+0000000080200280 T trap_load_fault_resume
+0000000080200284 T trap_store_probe
+0000000080200288 T trap_store_fault_site
+0000000080200290 T trap_store_fault_resume
+0000000080200294 T boot_dtb_size
+000000008020031a T boot_start
+0000000080200360 T boot_set_leader
+000000008020036a T boot_leader
+0000000080200374 T boot_trace_mark
+0000000080200388 T boot_publish_global
+000000008020039a T boot_wait_global
+00000000802003b2 T boot_hart_ready
+00000000802003e4 T boot_wait_all
+000000008020042a T boot_snapshot
+000000008020047a T kernel_main
+000000008020066e T irq_push
+0000000080200696 T irq_pop
+00000000802006d0 T spin_init
+00000000802006d6 T spin_acquire
+000000008020070e T spin_release
+0000000080200750 t prepare_pool
+00000000802007ee t page_alloc.part.0
+0000000080200892 T page_init
+000000008020094c T page_alloc
+000000008020095e T page_free
+0000000080200a84 T page_get_stats
+0000000080200b18 T page_selftest
+0000000080200fd6 t take_node
+000000008020105c T user_heap_pool_init
+00000000802010d6 T user_heap_nodes_free
+000000008020111a T user_heap_create
+000000008020116c T user_heap_alloc
+00000000802013ee T user_heap_free
+000000008020160e T user_heap_snapshot
+00000000802016d8 T user_heap_destroy
+000000008020175c t release_tree
+00000000802017e6 t remove_heap_page.isra.0
+00000000802018ae t heap_range
+0000000080201922 t map_owned_tree
+0000000080201ace T user_vm_destroy
+0000000080201b4a T user_vm_create
+0000000080201dc6 T user_vm_lookup
+0000000080201f0c T user_vm_heap_alloc
+0000000080202028 T user_vm_heap_free
+00000000802020f6 T user_vm_copyin
+0000000080202220 T user_vm_copyout
+000000008020234a t map_page
+0000000080202460 T vm_init
+0000000080202602 T vm_map_kernel
+0000000080202630 T vm_enable
+000000008020265e T vm_root_address
+0000000080202668 T vm_diag_frame_address
+0000000080202672 T vm_lookup
+0000000080202796 T vm_selftest
+0000000080203024 T trap_test_load_fault
+000000008020308c T trap_test_store_fault
+00000000802030f4 T trap_init_hart
+0000000080203132 T trap_enable
+0000000080203140 T trap_ticks
+000000008020315e T trap_uart_interrupts
+000000008020316a T trap_breakpoint_test
+00000000802031d4 T trap_handle_interrupt
+00000000802032a2 T trap_handle
+000000008020344e T trap_selftest
+00000000802034b8 T trap_user_return
+0000000080203576 T user_trap
+0000000080203646 T platform_shutdown
+0000000080203668 T plic_init
+0000000080203676 T plic_init_hart
+00000000802036be T plic_claim
+00000000802036d4 T plic_complete
+00000000802036ec T uart_init
+000000008020370a T uart_putc
+0000000080203730 T uart_puts
+0000000080203760 T uart_enable_rx_irq
+000000008020376c T uart_intr
+00000000802037f4 T uart_getc
+0000000080203836 T uart_rx_bytes
+0000000080203842 T uart_rx_dropped
+000000008020384e t first_user_return
+000000008020385a T process_init
+000000008020394a T process_current
+000000008020397c T process_get_result
+00000000802039f0 T process_run
+0000000080203dac T process_finish
+0000000080203e0a T syscall_dispatch
+0000000080203f08 T syscall_memory
+0000000080204042 t show_mapping
+000000008020410a T diagnostics_boot
+000000008020413c T diagnostics_memory
+00000000802041aa T diagnostics_vm
+000000008020430c T diagnostics_ticks
+0000000080204332 T diagnostics_irq
+0000000080204374 T diagnostics_process
+0000000080204430 T monitor_run
+000000008020484c T selftest_run
+0000000080204906 T selftest_prepare
+000000008020493c T selftest_hart
+0000000080204ab0 T selftest_parallel_result
+0000000080204b28 t one_region
+0000000080204ba8 t save_state
+0000000080204c20 t same_state
+0000000080204d10 T user_heap_selftest
+0000000080206886 t rejected_without_copy
+00000000802068e4 T user_memory_selftest
+0000000080207e90 T user_process_selftest
+0000000080208382 T user_heap_process_selftest
+0000000080208592 t emit_unsigned
+0000000080208638 t format.constprop.0
+0000000080208b0a T console_init
+0000000080208b2a T console_putc
+0000000080208b62 T console_printf
+0000000080208bc0 T console_snprintf
+0000000080208bf0 T console_selftest
+0000000080208d9a T panic
+0000000080208dd4 T memset
+0000000080208dec T memcpy
+0000000080208e04 T strcmp
+0000000080208e3c T strlen
+0000000080208e56 T sbi_probe_extension
+0000000080208e6e T sbi_start_hart
+0000000080208e88 T sbi_boot_secondaries
+0000000080208ee8 T sbi_set_timer
+0000000080209000 T trampoline_start
+0000000080209000 T user_vector
+00000000802090a4 T user_return
+0000000080209124 T trampoline_end
+000000008020a000 R _rodata_start
+000000008020a000 R _text_end
+000000008020a000 R _user_code_start
+000000008020a973 R _user_code_end
+000000008020a978 R _user_data_start
+000000008020a988 R _user_data_end
+000000008020c4b8 r invalid.1
+000000008020c590 r bad_frees.0
+000000008020c600 r addresses.0
+000000008020c640 r causes.1
+000000008020d000 D _data_start
+000000008020d000 D _rodata_end
+000000008020d000 d boot_claim
+000000008020d004 d boot_ready
+000000008020d008 d next_pid
+000000008020d010 B _bss_start
+000000008020d010 D _data_end
+000000008020e000 B _boot_stack_base
+0000000080216000 B _boot_stack_top
+0000000080216000 b records
+0000000080216080 b leader
+0000000080216088 b ready_count
+000000008021608c b global_ready
+0000000080216090 b irq_depth
+00000000802160b0 b irq_was_enabled
+00000000802160d0 b pools
+0000000080216160 b owned
+0000000080217160 b reserved_end
+0000000080217168 b reserved_begin
+0000000080217170 b list_mmap_region_node
+0000000080217570 b initialized
+0000000080217578 b available_count
+0000000080217580 b repository_lock
+0000000080217588 b available
+0000000080217590 b mappings_sealed
+0000000080217598 b diag_frame
+00000000802175a0 b root
+00000000802175a8 b expected_fault_address
+00000000802175e8 b fault_seen
+0000000080217608 b expected_fault_cause
+0000000080217648 b ticks
+0000000080217688 b breakpoint_count
+00000000802176c8 b breakpoint_expected
+00000000802176e8 b uart_interrupts
+00000000802176f0 b received
+00000000802177f0 b rx_dropped
+00000000802177f8 b rx_bytes
+0000000080217800 b write_position
+0000000080217804 b read_position
+0000000080217808 b slot
+0000000080217938 b last_result
+0000000080217998 b monitor_context
+0000000080217a08 b have_result
+0000000080217a0c b initialized
+0000000080217a10 b owner
+0000000080217a18 b permanent_stack
+0000000080217a20 b permanent_frame
+0000000080217a28 b baseline_free
+0000000080217a38 b held_kernel
+0000000080217a78 b held_user
+0000000080217ab8 b hart_page_failures
+0000000080217ad8 b allow_release
+0000000080217adc b held_count
+0000000080217ae0 b snapshots
+0000000080217f60 b fixture
+0000000080218090 b saved
+0000000080218310 b holders
+000000008021aa40 b output_lock
+000000008021aa48 B _bss_end
+000000008021b000 B _kernel_end
+
+$ riscv64-linux-gnu-readelf -h -S -W /home/zpg/Work/PugeZhang/lab5/build/cpu1/user/first.elf
+
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00 
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           RISC-V
+  Version:                           0x1
+  Entry point address:               0x1000
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          21184 (bytes into file)
+  Flags:                             0x1, RVC, soft-float ABI
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         4
+  Size of section headers:           64 (bytes)
+  Number of section headers:         15
+  Section header string table index: 14
+
+Section Headers:
+  [Nr] Name              Type            Address          Off    Size   ES Flg Lk Inf Al
+  [ 0]                   NULL            0000000000000000 000000 000000 00      0   0  0
+  [ 1] .text             PROGBITS        0000000000001000 001000 000973 00  AX  0   0  8
+  [ 2] .data             PROGBITS        0000000000002000 002000 000010 00  WA  0   0  8
+  [ 3] .riscv.attributes RISCV_ATTRIBUTES 0000000000000000 002010 000049 00      0   0  1
+  [ 4] .debug_line       PROGBITS        0000000000000000 002059 0014df 00      0   0  1
+  [ 5] .debug_line_str   PROGBITS        0000000000000000 003538 000075 01  MS  0   0  1
+  [ 6] .debug_info       PROGBITS        0000000000000000 0035ad 000ec7 00      0   0  1
+  [ 7] .debug_abbrev     PROGBITS        0000000000000000 004474 0002d1 00      0   0  1
+  [ 8] .debug_aranges    PROGBITS        0000000000000000 004750 0000c0 00      0   0 16
+  [ 9] .debug_str        PROGBITS        0000000000000000 004810 0002a1 01  MS  0   0  1
+  [10] .debug_loclists   PROGBITS        0000000000000000 004ab1 0002d2 00      0   0  1
+  [11] .debug_rnglists   PROGBITS        0000000000000000 004d83 000043 00      0   0  1
+  [12] .symtab           SYMTAB          0000000000000000 004dc8 000330 18     13  27  8
+  [13] .strtab           STRTAB          0000000000000000 0050f8 00011e 00      0   0  1
+  [14] .shstrtab         STRTAB          0000000000000000 005216 0000a9 00      0   0  1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  D (mbind), p (processor specific)
