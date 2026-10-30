@@ -121,7 +121,7 @@ quit
 
 ## 当前状态和分工
 
-`lab5/docs/evidence/summary.txt` 保存了 2026-10-22 的 QEMU 三核记录；[2026-10-28 三核复查](docs/evidence/rechecks/2026-10-28/summary.txt)和[2026-10-30 单核检查](docs/evidence/rechecks/2026-10-30/summary.txt)均为 1 个配置通过、0 个失败。检查包含 Lab 4 回归、堆分配/读写/释放、7 张堆地图、权限故障和资源回收。Lab 5 的 2、8 核运行尚未记录，也尚未在 VisionFive 2 开发板上验证。
+`lab5/docs/evidence/summary.txt` 保存了 2026-10-22 的 QEMU 三核记录；[2026-10-28 三核复查](docs/evidence/rechecks/2026-10-28/summary.txt)以及[2026-10-30 单核和双核复查](docs/evidence/rechecks/2026-10-30/summary.txt)均通过。检查包含 Lab 4 回归、堆分配/读写/释放、7 张堆地图、权限故障和资源回收。Lab 5 的 8 核运行尚未记录，也尚未在 VisionFive 2 开发板上验证。
 
 规格由 Agent 起草，代码为 Agent 协助实现；个人契约解释和亲手操作记录尚待本人补充。你可以先运行 `heap`，对照第 5 页课件看释放后链表怎样变化，再读 `lab5/spec/modules/heap.yaml` 与 `mm/user_heap.c`。
 

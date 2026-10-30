@@ -1,16 +1,6 @@
-Automated Lab 5 runtime verification. Started at 2026-10-30T10:42:16.870441+00:00
-Independent sources: lab5/.
-Monitor is S-mode kernel code, not a user shell.
+Lab 5 QEMU runtime rechecks on 2026-10-30 (Asia/Shanghai).
 
-PASS Lab 5, CPUs=1
-  - ELF/entry + every hart ready + independent 4 KiB stacks + per-hart satp
-  - formatter built-in boundary tests
-  - allocator+Sv39+actual CPU alias tests; repeat restores both pools; mapping permissions
-  - SBI timer interrupts advance on every active hart
-  - actual U execution+register/call/timer proofs; six contained protection faults; rollback and repeated page balance
-  - actual U heap allocation/write/read/free; real split/merge/reuse maps; freed/NX faults; rollback and page/node balance
-  - UART CRLF/LF/backspace/DEL; 127-character boundary; overflow discard+recovery
-  - UART PLIC interrupt+byte counters advance with no ring drops
-  - quit shuts down QEMU with exit status 0
+- CPUs=1: PASS, 1 passed, 0 failed. See cpu1/summary.txt and cpu1/.
+- CPUs=2: PASS, 1 passed, 0 failed. See cpu2/summary.txt and cpu2/.
 
-Results: 1 passed, 0 failed.
+Each run exercised the full Lab 5 automated check, including boot, memory and VM checks, user-process/syscall regressions, heap allocation and freeing, protection faults, UART behavior, and resource balance.
