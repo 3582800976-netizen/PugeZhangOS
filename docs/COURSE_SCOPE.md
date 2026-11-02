@@ -1,12 +1,12 @@
 # 课程依据与规划边界
 
-核对日期：2026-10-30（Asia/Shanghai）。
+核对日期：2026-11-02（Asia/Shanghai）。
 
 核对目标是用户指定的 [ECNU OSLab 2026 Gitee 任务仓库](https://gitee.com/christinaaa/ecnu-oslab-2026-task)。本项目归档的课程原件包括 [Lab 0 总体课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-0.pptx)、[Lab 4 课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-4.pptx)、[Lab 5 课件](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-5.pdf)。获取和校验过程见 [Lab 4 参考资料](../lab4/docs/reference/README.md)与 [Lab 5 参考资料](../lab5/docs/reference/README.md)。
 
-2026-10-30 尝试搜索和打开上述 Gitee 仓库，但未能取得最新文件列表；因此本次不能确认是否发布了 Lab 6 新任务。这里记录的是访问受限，不代表仓库没有更新。后续继续以用户指定的 Gitee 地址为准。
+2026-11-02 重新核对发现：Gitee 网页会返回安全验证码页面，网页读取工具因此显示不可访问；仓库公开 API 可以读取。默认 `master/lab-ppt` 当前列到 Lab 5，但 `lab6` 分支包含 Lab 6 指导书、源码框架和规格。分支当前提交为 `7effc11729eaeb2231d49f0cdcf41619da5e9ca4`。因此“默认分支没有 Lab 6 PPT”不等于“没有 Lab 6 任务”。详见[本地 Lab 6 说明](../lab6/README.md)及其中的课程分支链接。
 
-本地目前可核对的详细课件止于 Lab 5；Lab 6–9 的新任务和详细要求尚未核实。本项目的候选目录和函数名不等于课程提供的源码框架。
+Lab 6 的课程任务是实现可抢占多进程及生命周期，包括循环扫描调度、独立内核栈、fork/exit/wait、sleep/wakeup、睡眠锁和时钟等待；规格也明确了多核、父子内存独立、退出码、无丢失唤醒、资源不足原子失败等验收。课程分支的 `spec/modules` 含有待学生填写的 `pre`、`effects`、`post` 契约。本项目候选目录和函数名仍不等于课程提供的源码框架。
 
 | 课程阶段 | 总体内容 |
 | --- | --- |
