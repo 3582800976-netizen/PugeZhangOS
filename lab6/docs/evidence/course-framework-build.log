@@ -1,0 +1,16 @@
+make: Entering directory '/home/zpg/Work/PugeZhang/lab6/docs/reference/course/lab6'
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/boot/entry.o src/kernel/boot/entry.S
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/proc/swtch.o src/kernel/proc/swtch.S
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/trap/trampoline.o src/kernel/trap/trampoline.S
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/trap/trap.o src/kernel/trap/trap.S
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/main.o src/kernel/main.c
+In file included from src/kernel/lib/type.h:3,
+                 from src/kernel/lib/mod.h:2,
+                 from src/kernel/main.c:2:
+src/kernel/lib/../proc/type.h:97:5: error: unknown type name ‘spinlock_t’
+   97 |     spinlock_t lk;         // 自旋锁, 保护下面4个字段
+      |     ^~~~~~~~~~
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/arch/sbi.o src/kernel/arch/sbi.c
+make: *** [Makefile:119: target/qemu/kernel/main.o] Error 1
+make: *** Waiting for unfinished jobs....
+make: Leaving directory '/home/zpg/Work/PugeZhang/lab6/docs/reference/course/lab6'

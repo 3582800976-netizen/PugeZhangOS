@@ -9,6 +9,7 @@
 - [Lab 6 指导书 README](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/lab6/README.md)
 - [Lab 6 增量与验收规格](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/lab6/spec/patches/lab6.yaml)
 - [Lab 6 总体设计](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/lab6/spec/design.yaml)
+- [本地完整课程资料归档](docs/reference/README.md)，含指导书、规格、源码框架和测试图片。
 
 本次核对的 `lab6` 分支提交为 `7effc11729eaeb2231d49f0cdcf41619da5e9ca4`（2026-10-25）。Gitee 网页访问会显示安全验证码，因此网页读取工具拿不到内容；仓库公开 API 可正常读取。这是网页验证拦截，不是仓库缺少 Lab 6 或本地没有读取权限。
 

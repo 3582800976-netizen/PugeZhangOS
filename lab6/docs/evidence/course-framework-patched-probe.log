@@ -1,0 +1,20 @@
+Probe-only change in /tmp: include ../lock/type.h from src/kernel/proc/type.h.
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/boot/entry.o src/kernel/boot/entry.S
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/proc/swtch.o src/kernel/proc/swtch.S
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/trap/trampoline.o src/kernel/trap/trampoline.S
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/trap/trap.o src/kernel/trap/trap.S
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/main.o src/kernel/main.c
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/arch/sbi.o src/kernel/arch/sbi.c
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/boot/start.o src/kernel/boot/start.c
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/lib/cpu.o src/kernel/lib/cpu.c
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/lib/print.o src/kernel/lib/print.c
+src/kernel/lib/print.c:43:13: error: ‘printptr’ defined but not used [-Werror=unused-function]
+   43 | static void printptr(uint64 x)
+      |             ^~~~~~~~
+src/kernel/lib/print.c:18:13: error: ‘printint’ defined but not used [-Werror=unused-function]
+   18 | static void printint(int xx, int base, int sign)
+      |             ^~~~~~~~
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -std=gnu17 -MD -mcmodel=medany -march=rv64gc -mabi=lp64d -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -Itarget/qemu/user -c -o target/qemu/kernel/lib/uart.o src/kernel/lib/uart.c
+cc1: all warnings being treated as errors
+make: *** [Makefile:119: target/qemu/kernel/lib/print.o] Error 1
+make: *** Waiting for unfinished jobs....

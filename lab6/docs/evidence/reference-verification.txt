@@ -1,0 +1,12 @@
+Lab 6 课程资料归档检查
+日期：2026-11-02（Asia/Shanghai）
+来源：ECNU OSLab 2026 Gitee lab6 分支，提交 7effc11729eaeb2231d49f0cdcf41619da5e9ca4
+
+课程分支文件：82 个，1,815,618 字节；SHA-256 清单 82/82 通过。
+规格 YAML：20 个文件，全部解析通过。
+默认分支 Lab 0–4 PPTX：ZIP 完整性检查全部通过。
+默认分支 Lab 0–5 课件：SHA-256 清单 6/6 通过；Lab 5 PDF 的读取记录见 lab5/docs/reference/README.md。
+Lab 5 基线：make -C lab5 check CHECK_CPUS=1,2；CPU 1 和 CPU 2 均通过，共 18 个检查组。
+
+课程提供的 Lab 6 源码框架构建未通过，原始错误为 proc/type.h 中 spinlock_t 未声明；在 /tmp 临时副本补入其头文件后，又因 print.c 两个未使用函数被 -Werror 拒绝。原始框架未修改。完整输出见 course-framework-build.log 和 course-framework-patched-probe.log。
+Lab 6 课程源码构建目录已清理，原件归档保持不变。

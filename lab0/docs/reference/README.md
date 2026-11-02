@@ -1,5 +1,9 @@
 # 课程环境与开发板教程
 
+本目录也保存[Lab 0 总体课件](拔尖班-lab-0.pptx)，来源是[课程仓库 Lab 0 PPT](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/master/lab-ppt/拔尖班-lab-0.pptx)，于 2026-11-02 下载，大小 188001 字节，SHA-256 为 `713aa6379226b1f8f2c697144af2f4c3ace85eefb3c31a26b7854f4072aec2e3`，PPTX ZIP 完整性检查通过。
+
+## 环境与开发板资料
+
 2026-10-13（Asia/Shanghai）从[课程仓库 docs 目录](https://gitee.com/christinaaa/ecnu-oslab-2026-task/tree/master/docs)下载以下原件。内容未修改，均已检查 DOCX 压缩包完整性并核对课程文件的 Git blob SHA-1。
 
 | 本地文件 | 用途 | 课程原件 |
