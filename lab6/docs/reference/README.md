@@ -1,10 +1,12 @@
 # Lab 6 课程资料归档
 
-本目录归档了课程 Gitee 仓库 `lab6` 分支在提交 `7effc11729eaeb2231d49f0cdcf41619da5e9ca4` 的完整教学资料，共 82 个文件、约 1.8 MB。离线入口是[课程 README](course/lab6/README.md)；同目录保留了课程规格、源码框架、构建文件和验收图片。
+本目录包含今天新增的 [Lab 6 PPT](拔尖班-lab-6.pptx)，以及课程 Gitee 仓库 `lab6` 分支在提交 `7effc11729eaeb2231d49f0cdcf41619da5e9ca4` 的完整资料快照，共 82 个分支文件、约 1.8 MB。PPT 来自 `master` 提交 `debf5b1b999bc9d9f25942bbdd0c09dfab12285a`，共 8 页。离线入口是[分支 README](course/lab6/README.md)；同目录保留了课程规格、源码框架、构建文件和验收图片。
 
-## 为什么没有 Lab 6 PPT
+## PPT 与指导书
 
-核对时，默认分支 `master/lab-ppt` 只列到 Lab 5；`lab6` 分支也没有 PPT 或 PDF。老师把 Lab 6 材料放成 Markdown 指导书、YAML 规格、源码框架和 `picture/` 下的状态图与测试输出图。因此这里归档的是仓库实际发布的全部 Lab 6 教学文件，不会把 README 改名成 PPT。
+2026-11-03，课程主分支新增 [Lab 6 PPTX](拔尖班-lab-6.pptx)，Git blob SHA-1 为 `83c86591cc4142838d6fe42e069c55cba2d30383`。它有 8 页，主要讲内核上下文切换、调度器与 PCB 数组、fork/wait/sleep/exit 以及时钟轮转。PPT 描述的当前框架只能在用户态响应时钟；同一仓库 `lab6` 分支的规格把内核态与用户态的安全时钟抢占列为实现目标，需按最终规格验收。
+
+PPT 之外，Lab 6 分支提供 Markdown 指导书、YAML 规格、源码框架和 `picture/` 下的状态图与测试输出图；这些与 PPT 互为补充，不是同一份内容。
 
 资料来源：[课程仓库 Lab 6 分支](https://gitee.com/christinaaa/ecnu-oslab-2026-task/tree/lab6)。网页会触发安全验证码，文件通过 Gitee raw 直链取得；API 目录清单核实了文件范围。文件固定在上述提交，避免后续分支变化悄悄改写本地资料。
 

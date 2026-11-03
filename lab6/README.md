@@ -4,12 +4,14 @@
 
 ## 课程资料在哪里
 
-课程仓库的 `master/lab-ppt` 目前只列出 Lab 0～5，没有 Lab 6 PPT。Lab 6 的实验指导书和规格文件放在仓库的 `lab6` 分支，而不是默认分支：
+课程仓库于 2026-11-03 在 `master/lab-ppt` 新增了 [Lab 6 PPT](docs/reference/拔尖班-lab-6.pptx)。它用 8 页讲进程上下文切换、fork/wait/sleep/exit 和时钟轮转调度。详细指导书、验收用例、源码框架和 YAML 规格仍放在独立的 `lab6` 分支：
 
 - [Lab 6 指导书 README](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/lab6/README.md)
 - [Lab 6 增量与验收规格](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/lab6/spec/patches/lab6.yaml)
 - [Lab 6 总体设计](https://gitee.com/christinaaa/ecnu-oslab-2026-task/blob/lab6/spec/design.yaml)
 - [本地完整课程资料归档](docs/reference/README.md)，含指导书、规格、源码框架和测试图片。
+
+PPT 提到当前框架只能在用户态响应时钟中断；Lab 6 分支的增量规格进一步要求安全处理中断抢占。实现验收时要以课程规格和测试为准，不能把 PPT 对旧框架现状的描述当作最终要求。
 
 本次核对的 `lab6` 分支提交为 `7effc11729eaeb2231d49f0cdcf41619da5e9ca4`（2026-10-25）。Gitee 网页访问会显示安全验证码，因此网页读取工具拿不到内容；仓库公开 API 可正常读取。这是网页验证拦截，不是仓库缺少 Lab 6 或本地没有读取权限。
 

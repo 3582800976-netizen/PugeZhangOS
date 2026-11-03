@@ -10,3 +10,5 @@ Lab 5 基线：make -C lab5 check CHECK_CPUS=1,2；CPU 1 和 CPU 2 均通过，�
 
 课程提供的 Lab 6 源码框架构建未通过，原始错误为 proc/type.h 中 spinlock_t 未声明；在 /tmp 临时副本补入其头文件后，又因 print.c 两个未使用函数被 -Werror 拒绝。原始框架未修改。完整输出见 course-framework-build.log 和 course-framework-patched-probe.log。
 Lab 6 课程源码构建目录已清理，原件归档保持不变。
+
+2026-11-03 更新：master 新增 Lab6 PPT，固定于提交 debf5b1b999bc9d9f25942bbdd0c09dfab12285a；下载文件 1,945,918 字节，Git blob SHA-1 83c86591cc4142838d6fe42e069c55cba2d30383。共 8 页，PPTX ZIP 完整性检查通过。更新后的 Lab 0–6 课件 SHA-256 清单 7/7 通过；Lab 0–4 和 Lab 6 PPTX 的 ZIP 完整性检查通过。
