@@ -1,0 +1,13 @@
+VisionFive 2 镜像下载与校验记录
+日期：2026-11-03（Asia/Shanghai）
+
+官方来源：https://github.com/starfive-tech/VisionFive2/releases/tag/6.0.0
+Release tag：6.0.0（Ubuntu 24.04.3，2025-10-17 发布）
+文件：ubuntu-24.04.3-preinstalled-desktop-riscv64+vf2-lite.img.bz2
+下载位置：Windows 用户 Downloads 目录；镜像本体不提交到 Git。
+文件大小：1,864,042,287 字节
+GitHub Release API digest：sha256:6d7d9b864aea29be58f5e5dccc921bfb697317023e7de4c85720e1676f6c4814
+本机 sha256sum：6d7d9b864aea29be58f5e5dccc921bfb697317023e7de4c85720e1676f6c4814（匹配）
+压缩流检查：`bzip2 -t` 通过（无损坏）
+
+状态：镜像下载并校验完成；microSD 尚未写入，板卡尚未上电。写卡前须在 balenaEtcher 中确认目标设备确为 microSD 卡及其容量。

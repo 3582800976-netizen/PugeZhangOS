@@ -14,7 +14,9 @@
 
 开发板准备先看 `vf2.docx`；它适用于 VisionFive 2，需核对实际板型后使用其接线与镜像说明。Windows PowerShell、WSL Ubuntu、开发板上的 Ubuntu 是三个不同的命令环境，教程中的命令要在对应环境执行。
 
-本次下载和电脑端检查由 Agent 完成，尚未取得开发板开机日志，也没有写入 SD 卡或完成上板验收。开发机为 WSL2、Ubuntu 24.04.4；随后检查已确认 `minicom` 与 `lsusb` 可用，USB 串口尚未出现在 WSL。Windows 端已安装 usbipd-win 5.3.0，服务正常；尚未识别到 CH340。开发板配置按本人要求暂缓，实际连接与上板结果以设备识别和开机日志为准。
+2026-11-03 开始准备烧录：已按教程从 StarFive 官方 6.0.0 发布页下载 `ubuntu-24.04.3-preinstalled-desktop-riscv64+vf2-lite.img.bz2` 到 Windows 下载目录，并核对 SHA-256。下载记录见 [镜像校验证据](../evidence/image-check-20261103.txt)。microSD 尚未写入，开发板也尚未启动；下一步需要在 balenaEtcher 中核对目标卡型号和容量。
+
+此前电脑端检查记录：开发机为 WSL2、Ubuntu 24.04.4；`minicom` 与 `lsusb` 可用，USB 串口曾未出现在 WSL。Windows 端已安装 usbipd-win 5.3.0，服务正常；当时尚未识别到 CH340。实体串口状态以本次连接后的设备识别为准。
 
 | 文件 | 字节数 | Git blob SHA-1 |
 | --- | --- | --- |
