@@ -1,0 +1,10 @@
+VisionFive 2 串口准备记录
+日期：2026-11-04（Asia/Shanghai）
+
+用户报告已核对拨码、CH340 连线及电平；Agent 未取得调整后特写，不能将物理接线记为独立验证。
+Windows 当前识别到 USB-SERIAL CH340 (COM3)，USB 标识 1a86:7523；设备当时在 usbipd 列表中为 Shared，BUSID 为 2-6。
+Agent 执行 usbipd attach --wsl --busid 2-6 后，设备状态变为 Attached，WSL 中出现 /dev/ttyUSB0。
+/dev/ttyUSB0 属于 dialout 组；当前用户属于 dialout。minicom 路径为 /usr/bin/minicom。
+Agent 创建独立用户配置 /home/zpg/.minirc.vf2，并在 minicom 设置界面核对：/dev/ttyUSB0、115200 8N1、硬件流控 No、软件流控 No。配置仅准备串口，未通过它采集开发板输出。
+
+该 BUSID 和 ttyUSB 编号可能在重新连接后变化。尚未取得本次板卡上电日志，不能将串口识别当成开发板启动成功。

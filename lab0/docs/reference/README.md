@@ -16,7 +16,7 @@
 
 2026-11-03 开始准备烧录：已按教程从 StarFive 官方 6.0.0 发布页下载 `ubuntu-24.04.3-preinstalled-desktop-riscv64+vf2-lite.img.bz2` 到 Windows 下载目录，并核对 SHA-256。2026-11-04 使用生成并复核过的未压缩镜像写卡，用户提供的 Etcher 截图显示 1 个目标“烧录成功”；截图未单独证明是否执行校验。记录见[镜像与烧录证据](../evidence/image-check-20261103.txt)。开发板尚未启动验收。
 
-此前电脑端检查记录：开发机为 WSL2、Ubuntu 24.04.4；`minicom` 与 `lsusb` 可用，USB 串口曾未出现在 WSL。Windows 端已安装 usbipd-win 5.3.0，服务正常；当时尚未识别到 CH340。实体串口状态以本次连接后的设备识别为准。
+2026-11-04 已将 Windows 识别的 CH340 转发到 WSL；当次设备为 `/dev/ttyUSB0`，并创建了 `minicom -o vf2` 使用的独立 115200 8N1 配置。具体识别和权限检查见[串口准备记录](../evidence/serial-setup-20261104.txt)。BUSID 和设备号可能变化；尚未取得板卡启动日志。
 
 | 文件 | 字节数 | Git blob SHA-1 |
 | --- | --- | --- |
