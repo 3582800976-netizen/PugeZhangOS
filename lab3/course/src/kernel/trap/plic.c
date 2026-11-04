@@ -1,0 +1,33 @@
+#include "mod.h"
+
+// PLIC初始化
+void plic_init()
+{
+    // 设置UART中断优先级
+    *(volatile uint32 *)(PLIC_PRIORITY(UART_IRQ)) = 1;
+}
+
+// PLIC核心初始化
+void plic_inithart()
+{
+    int hartid = mycpuid();
+    // 使能中断开关
+    *(volatile uint32 *)PLIC_SENABLE(hartid) = hartid == 0 ? (1 << UART_IRQ) : 0;
+    // 设置响应阈值
+    *(volatile uint32 *)PLIC_SPRIORITY(hartid) = 0;
+}
+
+// 获取中断号
+int plic_claim(void)
+{
+    int hartid = mycpuid();
+    int irq = *(volatile uint32 *)PLIC_SCLAIM(hartid);
+    return irq;
+}
+
+// 确认该中断号对应中断已经完成
+void plic_complete(int irq)
+{
+    int hartid = mycpuid();
+    *(volatile uint32 *)PLIC_SCLAIM(hartid) = irq;
+}

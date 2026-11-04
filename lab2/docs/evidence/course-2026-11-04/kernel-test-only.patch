@@ -1,0 +1,73 @@
+--- a/src/kernel/main.c
++++ b/src/kernel/main.c
+@@ -2,6 +2,7 @@
+ #include "lib/mod.h"
+ #include "mem/mod.h"
+ extern void _entry(void);
++extern void lab2_extra_test(void);
+ 
+ // 固件选择一个初始 hart；HSM 从核启动前共享初始化已经完成。
+ static int boot_hart = -1;
+@@ -27,6 +28,7 @@
+                 panic("sbi_hart_start");
+             }
+         }
++        lab2_extra_test();
+     } else {
+         while (!__atomic_load_n(&initialized, __ATOMIC_ACQUIRE)) ;
+         kvm_inithart();
+--- a/src/kernel/mem/pmem.c
++++ b/src/kernel/mem/pmem.c
+@@ -61,3 +61,52 @@
+     node->next = r->list_head.next; r->list_head.next = node; r->allocable++;
+     spinlock_release(&r->lk);
+ }
++
++#define EXHAUST_KERNEL 1
++
++
++/* Test-only code: compiled in the same translation unit to inspect the
++ * intentionally private free-page counts; production behavior is unchanged. */
++static uint8 verify_seen[(MAX_PAGES + 7) / 8];
++void lab2_extra_test(void)
++{
++    uint32 before = user_region.allocable;
++    uint64 pages[10];
++    for (int i = 0; i < 10; i++) {
++        pages[i] = (uint64)pmem_alloc(false);
++        assert(user_region.allocable == before - (uint32)i - 1, "user count after alloc");
++        assert(pages[i] >= user_region.begin && pages[i] < user_region.end &&
++               pages[i] % PGSIZE == 0, "user range or alignment");
++        memset((void *)pages[i], 0xa5, PGSIZE);
++    }
++    for (int i = 0; i < 10; i++) {
++        pmem_free(pages[i], false);
++        assert(user_region.allocable == before - 9 + (uint32)i, "user count after free");
++    }
++    assert(user_region.allocable == before, "user count not restored");
++    for (int i = 0; i < 10; i++) {
++        uint8 *p = pmem_alloc(false);
++        for (int j = 0; j < PGSIZE; j++) assert(p[j] == 0, "reused page not zero");
++        pages[i] = (uint64)p;
++    }
++    for (int i = 0; i < 10; i++) pmem_free(pages[i], false);
++    assert(user_region.allocable == before, "user count not restored after zero check");
++    printf("[lab2-extra] ten-page-count-and-zero PASS\n");
++
++    bool kernel = EXHAUST_KERNEL;
++    alloc_region_t *r = kernel ? &kern_region : &user_region;
++    uint32 count = r->allocable;
++    for (uint32 i = 0; i < count; i++) {
++        uint64 p = (uint64)pmem_alloc(kernel);
++        assert(p >= r->begin && p < r->end && p % PGSIZE == 0, "exhaust range or alignment");
++        uint32 idx = index_of(p);
++        assert(!(verify_seen[idx / 8] & (1U << (idx % 8))), "exhaust duplicate");
++        verify_seen[idx / 8] |= (uint8)(1U << (idx % 8));
++        assert(r->allocable == count - i - 1, "exhaust count");
++    }
++    assert(r->allocable == 0 && r->list_head.next == NULL, "exhaust not empty");
++    printf("[lab2-extra] pool=%s pages=%d empty PASS; expecting panic next\n",
++           kernel ? "kernel" : "user", (int)count);
++    pmem_alloc(kernel);
++    panic("unexpected successful allocation from empty pool");
++}

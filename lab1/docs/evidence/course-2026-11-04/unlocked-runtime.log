@@ -1,0 +1,46 @@
+[format] -2147483648 ffffffff 0x0000000000000012 Q (null) %
+[lock-test] hart=1 errors=0
+[lock-test] hart=0 errors=0
+[line] hart=0 index=0 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=1 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=0 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=2 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=3 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=1 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=4 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=2 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=5 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=3 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=4 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=6 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=5 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=7 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=6 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=8 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=7 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=9 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=8 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=10 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=9 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=11 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=10 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=12 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=11 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=13 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=12 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=14 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=13 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=15 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=14 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=16 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=15 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=17 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=16 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=18 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=17 AAAABBBBCCCCDDDDEEEE
+[line] hart=0 index=19 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=18 AAAABBBBCCCCDDDDEEEE
+[line] hart=1 index=19 AAAABBBBCCCCDDDDEEEE
+[sum] 1034220
+[done]
+qemu-system-riscv64: terminating on signal 15 from pid 8 (python3)

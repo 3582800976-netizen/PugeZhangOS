@@ -1,110 +1,235 @@
-# PugeZhangOS · 系统框架与实验路线
+# PugeZhangOS：从零理解和构建操作系统
 
-ECNU OSLab 2026：参考 xv6 的原理，用 C 和 RISC-V 从启动、内存管理到中断逐步构建内核。
+这是我们的 ECNU OSLab 课程项目。我们参考 xv6 的原理，使用 C 和 RISC-V 汇编，逐步实现自己的小型操作系统。这个 README 是整个项目的入口：先看系统由什么组成，再看每个实验做到哪里、代码放在哪里，以及怎样运行。
 
-**先读 [整个操作系统的架构](ARCHITECTURE.md)，再看 [Lab 0–9 建设路线](docs/ROADMAP.md)，最后进入当前实验。**
+**当前进度：正在改用老师各 Lab 分支提供的源码框架，按课程要求逐项完成。** 已取得 Lab 1～6 框架，放在各自的 `course/` 目录；Lab 1～3 已分别填写启动与打印、内存与页表、时钟与串口中断，并做过 QEMU 双核检查。实验仍有未覆盖的验收项和实现限制，Lab 4～6 是未填写的原始框架。此前自行实现的 Lab 1～5 代码和 QEMU 自测记录仍保留，不能当作课程框架验收通过。内核尚未在 VisionFive 2 开发板上验证。
 
-Lab 1–5 各有独立源码、Makefile 和说明；Lab 6–9 保留目标与接入规划。实验目录区分阶段，模块目录区分职责。
+课程资料来自 [ECNU OSLab 2026 任务仓库](https://gitee.com/christinaaa/ecnu-oslab-2026-task)，本地课件和课程资料见[课程资料索引](docs/COURSE_MATERIALS.md)。
 
-| 实验 | 本次解决什么问题 | 从哪里开始 |
-| --- | --- | --- |
-| Lab 0 | 准备工具，运行参考 xv6 | [环境说明](lab0/README.md) |
-| Lab 1 | CPU 怎样进入内核，并把字符输出到终端 | [Lab 1 说明](lab1/README.md) |
-| Lab 2 | 内核怎样分配物理页、建立受权限保护的页表 | [Lab 2 说明](lab2/README.md) |
-| Lab 3 | 时钟和输入怎样打断程序，处理后继续执行 | [Lab 3 说明](lab3/README.md) |
-| Lab 4 | 怎样运行第一个用户进程 | [Lab 4 说明](lab4/README.md) |
-| Lab 5 | 用户程序怎样申请、释放和复用堆内存 | [Lab 5 实现说明](lab5/README.md) |
-| Lab 6 | 怎样调度进程、处理创建和结束 | [Lab 6 规划](lab6/README.md) |
-| Lab 7 | 怎样读写磁盘并缓存数据块 | [Lab 7 规划](lab7/README.md) |
-| Lab 8 | 怎样由路径找到 inode 和目录项 | [Lab 8 规划](lab8/README.md) |
-| Lab 9 | 怎样提供文件接口和用户 Shell | [Lab 9 规划](lab9/README.md) |
+## 一、先看整个系统
 
-## 目录一眼看清
+操作系统内核是运行在硬件和用户程序之间的一层软件：它管理内存、处理设备事件，并为用户程序提供服务。我们现在的系统大致是这样：
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ 用户程序（user/）                                       │
+│ 例如 Lab 5 的用户程序：请求内存、使用内存、归还内存     │
+└──────────────────────────┬──────────────────────────────┘
+                           │ 系统调用：请内核帮忙
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│ 内核                                                    │
+│                                                         │
+│  trap/     接收中断、异常和系统调用，保存及恢复现场     │
+│  syscall/  检查用户请求，把请求交给相应模块             │
+│  proc/     管理用户进程的运行和资源                     │
+│  mm/       管理物理内存、页表和用户堆                   │
+│  drivers/  操作串口等设备                               │
+│  monitor/  提供 pgos> 诊断台，观察内核状态              │
+│  boot/、kernel/  准备启动环境，安排各模块初始化         │
+└──────────────────────────┬──────────────────────────────┘
+                           │ 操作硬件或请求固件服务
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│ QEMU 模拟的 RISC-V 机器：CPU、内存、串口等              │
+└─────────────────────────────────────────────────────────┘
+```
+
+这张图描述此前的自建版本；老师框架的目录组织不同，后文单独说明。图中 `user/`、`proc/` 和 `syscall/` 是从 Lab 4 开始出现的，并不是 Lab 1 就有。`pgos>` 是运行在自建内核中的**诊断台**，方便检查系统状态；它还不是未来运行在用户态的 Shell。
+
+### 以后还要加入什么？
+
+```text
+现在的用户进程和内存管理
+        │
+        ├── Lab 6：多进程调度、创建、等待、退出和睡眠
+        │
+        └── 后续规划：磁盘驱动 → 块缓存 → 文件系统 → 文件接口 → 用户 Shell
+```
+
+这些是接下来的建设方向，不代表功能已经完成；Lab 7～9 的具体划分要以课程发布的要求为准。
+
+## 二、项目目录怎么读
 
 ```text
 PugeZhang/
-├── ARCHITECTURE.md    全系统模块、依赖关系、现有与规划边界
-├── lab0/              工具与 xv6 环境说明
-├── lab1/              启动、串口、格式化输出、锁
-│   ├── README.md      目标、文件职责、阅读顺序、验收方法
-│   ├── Makefile       只编译本实验
-│   ├── linker.ld      本实验的加载地址和内存布局
-│   ├── boot/          入口与栈设置
-│   ├── kernel/        启动编排、多核状态与锁
-│   ├── trap/          异常入口与处理
-│   ├── monitor/       输入命令与状态展示
-│   ├── tests/         自检编排
-│   ├── drivers/       硬件访问
-│   ├── lib/           打印、内存等辅助函数
-│   ├── include/       本实验的类型、常量、接口
-│   └── docs/evidence/ 本实验的真实验证日志
-├── lab2/              同样结构；新增 mm/ 物理页、Sv39 和权限验证
-├── lab3/              同样结构；增加 PLIC、串口中断和时钟
-├── lab4/              新增 spec/、proc/、syscall/、user/，首个用户进程
-├── lab5/              独立继承 Lab 4；动态堆、空闲区管理和带参数系统调用
-├── lab6/ … lab9/       后续阶段规划；实现时继承前一实验的完整基础
-├── scripts/check.py   自动构建、驱动 QEMU、收集各实验日志
-├── docs/              全系统路线、开发约定与课程依据
-├── extras/host-shell/  早期宿主 Linux Shell 练习
-└── Makefile           实验运行与验证的导航入口
+├── README.md          你正在读的整体架构和使用入口
+├── ARCHITECTURE.md    更详细的模块和接口说明
+├── Makefile           根目录的运行与检查入口
+├── docs/              整体路线、开发约定和课程资料索引
+│
+├── lab0/              工具、参考 xv6 和开发板准备
+├── lab1/              启动、串口输出和基本内核
+│   └── course/        老师 Lab 1 的课程源码与指导书
+├── lab2/              物理内存和页表
+├── lab3/              中断、时钟和串口输入
+├── lab4/              第一个用户进程和系统调用
+├── lab5/              用户堆内存分配和回收
+├── lab6/              多进程调度：课程框架与规划，尚未完成
+├── lab7/、lab8/、lab9/ 后续实验规划
+│
+├── scripts/           自动构建和 QEMU 检查脚本
+└── extras/host-shell/ 早期在宿主 Linux 上的 Shell 练习
 ```
 
-Lab 2 包含它所需要的启动和打印基础；Lab 3 包含它所需要的启动和内存基础。这些文件按阶段保留，便于直接查看和比较，每个实验可以独立构建。内核源码不跨实验引用，也不使用 `#if LAB` 切换行为。
+**Lab 是实验阶段，模块是系统里的功能分工。** 例如 `lab2/` 表示做到内存管理的阶段，而其中的 `mm/` 表示负责内存管理的代码。
 
-## 分别运行
+此前的 Lab 1～5 自建版本各自包含完整源码、Makefile 和说明，可以独立构建。Lab 5 以 Lab 4 的成果为基础，但运行时不会去引用 `lab4/` 里的源码。这些旧版本现在保留为学习和移植参考。老师的各阶段框架在对应的 `labN/course/`，要以其中的指导书、接口和验收要求为准。
 
-在仓库根目录执行，一次启动一个实验：
+根目录的 `Makefile` 主要负责导航和转发；真正的内核源码在各自的 Lab 中。`build/` 是编译产生的文件，Git 不跟踪它。
+
+## 三、每个实验做到哪里
+
+| 阶段 | 主要问题 | 当前状态和入口 |
+| --- | --- | --- |
+| Lab 0 | 怎样准备工具、运行参考 xv6、认识开发板 | [环境与资料](lab0/README.md) |
+| Lab 1 | CPU 启动后怎样进入内核、输出文字 | [已实现：启动和输出](lab1/README.md) |
+| Lab 2 | 怎样分配内存、通过页表控制访问 | [已实现：内存管理](lab2/README.md) |
+| Lab 3 | 时钟和串口输入来了，内核怎样处理 | [已实现：中断](lab3/README.md) |
+| Lab 4 | 怎样让用户程序运行并请求内核服务 | [已实现：第一个用户进程](lab4/README.md) |
+| Lab 5 | 用户程序怎样申请、使用和归还堆内存 | [已实现：用户堆](lab5/README.md) |
+| Lab 6 | 多个进程怎样轮流运行、等待和退出 | [课程资料与规划](lab6/README.md)，尚未实现 |
+| Lab 7 | 怎样读写磁盘、管理数据块 | [规划](lab7/README.md) |
+| Lab 8 | 怎样通过目录和路径找到文件 | [规划](lab8/README.md) |
+| Lab 9 | 怎样提供文件接口和用户 Shell | [规划](lab9/README.md) |
+
+Lab 4、5 能运行用户程序，但当前是**单个进程槽**，还没有 Lab 6 的完整多进程调度。每个实验的 README 包含它自己的目标、代码入口、运行方法和验收说明。
+
+### 每个实验自己的代码框架
+
+下面列的是本项目里实际存在的主要目录。后续实验保留前面阶段需要的基础，再增加新能力；这些目录是各自独立的阶段快照。
+
+| 实验 | 主要代码目录 | 本阶段重点 |
+| --- | --- | --- |
+| Lab 1 | `boot/`、`kernel/`、`drivers/`、`trap/`、`lib/`、`monitor/` | 入口与启动栈、串口输出、锁和基础异常处理 |
+| Lab 2 | Lab 1 的基础，加上 `mm/` | 物理页分配、页表和访问权限 |
+| Lab 3 | 沿用 Lab 2 的主要目录，扩展 `trap/`、`drivers/` | 保存和恢复现场、时钟与串口中断 |
+| Lab 4 | 前面基础，加上 `proc/`、`syscall/`、`user/` 和 `spec/` | 用户进程、用户地址空间和系统调用 |
+| Lab 5 | 沿用 Lab 4 的目录，扩展 `mm/`、`syscall/`、`user/` 等 | 用户堆的申请、释放、合并与验证 |
+| Lab 6 | `course/`、`README.md` 和 `docs/` | 老师的课程框架已取得，调度代码尚未完成 |
+
+各实验还包含 `include/`、`tests/`、`docs/`、`Makefile` 等；具体文件见对应 Lab 的 README。
+
+### 老师框架与此前代码是什么关系？
+
+**Lab 1～5 是本项目根据课程内容、参考 xv6 原理建立的独立实现，并不是在老师提供的源码框架里逐项填写完成的版本。** Lab 4、5 的 `spec/` 是本项目根据课件由 Agent 起草的规格，不是老师仓库的原件。Lab 1～3 的实现与自动检查也有 Agent 参与，不能记作本人独立手写。
+
+老师的 Lab 1～6 分支各有源码框架和指导书，已放在 `lab1/course/` 至 `lab6/course/`。Lab 1～3 在取得后已开始填写；Lab 4～6 目前保留原样。例如 [Lab 1 课程指导书](lab1/course/README.md)明确列出需要完成的 `start.c`、`spinlock.c`、`print.c`、`main.c`；[Lab 6 课程指导书](lab6/course/README.md)列出调度与进程相关任务。各分支的提交号和取得情况见[课程框架记录](docs/COURSE_FRAMEWORK.md)。
+
+接下来以老师框架为基础填写和验证，再把已完成的前阶段工作与后续分支的新增要求衔接。老师部分后续分支仍保留前阶段空函数，不能直接认为已经实现。此前代码可以作为参考，但不能把此前自测当成老师框架的验收结果。老师还要求按阶段建立继承分支；目前本仓库主要按目录区分，分支历史尚未整理完成。
+
+老师的 [Lab 5 规格](lab5/course/spec/patches/lab5.yaml)列有 `brk`、栈按需增长、页表复制和 VisionFive 2 等要求；本项目已有按页分配的堆接口，但尚不能据现有自测记录宣称满足这些全部要求。该规格文件与 Lab 6 分支归档中的同名文件一致。**QEMU 自测通过不等于课程全部验收通过。**
+
+## 四、一个实验内部的架构
+
+以目前最新的 `lab5/` 为例：
+
+```text
+lab5/
+├── boot/          内核入口、启动栈和固件交接
+├── kernel/        启动顺序、多核状态和锁
+├── drivers/       串口、PLIC 等设备操作
+├── mm/            物理页、页表、用户地址空间和堆
+├── trap/          保存现场，处理中断、异常和用户态陷入
+├── proc/          当前用户进程的创建、运行与回收
+├── syscall/       用户请求的检查、分发与执行
+├── user/          单独编译的用户程序与调用封装
+├── monitor/       pgos> 诊断命令和状态展示
+├── lib/           打印、字符串和 SBI 等辅助功能
+├── include/       各模块的类型、常量和接口声明
+├── tests/         自检和用户进程、内存测试
+├── spec/          本实验的设计与接口规格
+├── docs/          课程资料和运行证据
+├── linker.ld      指定内核代码和数据如何布局
+└── Makefile       编译这个实验、启动 QEMU、运行检查
+```
+
+不用一开始把每个文件都背下来。先记住：`boot/` 负责开始，`mm/` 负责内存，`trap/` 负责处理发生的事件，`proc/` 负责进程，`drivers/` 负责设备。
+
+### 从开机到看到 `pgos>`
+
+以 Lab 5 的 QEMU 启动为例：
+
+```text
+QEMU 启动模拟机器
+  → OpenSBI 固件完成初始交接
+  → boot/ 准备入口和栈
+  → kernel/main.c 按顺序初始化内存、设备和中断等
+  → 完成多核准备和启动自检
+  → monitor/ 显示 pgos>，等待输入命令
+```
+
+Lab 1 的启动方式不同：它自己从 M 模式切换到 S 模式；Lab 2～5 通过 OpenSBI 进入 S 模式。这里的 M、S、U 可以先理解为 CPU 提供的不同权限级别：固件、内核和用户程序各自在相应的权限下工作。
+
+### 用户程序申请内存时
+
+```text
+user/ 用户程序：请求若干页内存
+  → 执行 ecall，进入 trap/，保存用户现场
+  → syscall/ 检查并分发请求
+  → mm/user_heap.c 寻找合适的空闲区域
+  → mm/user_vm.c 分配物理页并建立用户映射
+  → 返回结果，恢复用户现场，继续执行用户程序
+```
+
+释放时，内核回收映射和物理页，把空闲区域重新记录起来，必要时合并相邻区域。Lab 5 的 `heap` 命令会展示这些空闲区域如何变化。
+
+## 五、怎样运行和检查
+
+需要先配置 RISC-V 交叉编译工具和 `qemu-system-riscv64`，环境准备见 [Lab 0](lab0/README.md)。在项目根目录运行老师框架的 Lab 1：
 
 ```bash
-make -C lab1 qemu CPUS=3
-make -C lab2 qemu CPUS=3
-make -C lab3 qemu CPUS=3
-make -C lab4 qemu CPUS=3
+cd /home/zpg/Work/PugeZhang
+make -C lab1/course run
+```
+
+应看到 `cpu 0 is booting!` 和 `cpu 1 is booting!`，出现顺序可以不同。程序会继续等待；退出 QEMU 时先按 `Ctrl+A`，松开后按 `X`。这是老师框架，目前固定两核；验证记录见 [Lab 1 课程框架检查](lab1/docs/evidence/course-2026-11-04/README.md)。
+
+老师框架的 Lab 2 可以运行 `make -C lab2/course run`，启动和内存功能的实际检查及未完成项见 [Lab 2 课程框架检查](lab2/docs/evidence/course-2026-11-04/README.md)。
+
+老师框架的 Lab 3 可以运行 `make -C lab3/course run`，输入字符、退格和回车观察回显；时钟和串口测试见 [Lab 3 课程框架检查](lab3/docs/evidence/course-2026-11-04/README.md)。
+
+下面的命令运行的是**此前的自建版本**，不是老师框架的验收：
+
+```bash
+cd /home/zpg/Work/PugeZhang
 make -C lab5 qemu CPUS=3
 ```
 
-也可以进入对应实验目录后执行 `make qemu`。默认三核，`CPUS` 支持 1–8。编译产物分别存放在各实验的 `build/cpuN/`，不会混用。
+`make` 根据 Makefile 编译，`-C lab5` 表示进入 `lab5/` 执行，`qemu` 表示启动模拟器，`CPUS=3` 表示模拟三个 CPU 核心。Lab 1～4 也可以把 `lab5` 换成相应目录运行；当前支持 1～8 核。
 
-进入 `pgos>` 后输入 `help` 查看**本实验**的命令，输入 `quit` 退出。这里是内核诊断台。Lab 4 的 `user` 命令会启动真正的 U 模式程序；文件系统和用户 Shell 仍是后续实验。
+出现 `pgos>` 后，可以输入：
 
-根目录单独执行 `make` 会显示使用方法。旧命令 `make qemu LAB=1 CPUS=3` 仍可用：根 Makefile 只转发到 `lab1/Makefile`，不在同一套源码中切换阶段。
-
-## 验证
-
-```bash
-make -C lab1 check          # 只检查 Lab 1 的 1、2、3、8 核
-make -C lab2 check          # 只检查 Lab 2
-make -C lab3 check          # 只检查 Lab 3
-make -C lab4 check          # 检查用户进程、保护与回收
-make -C lab5 check CHECK_CPUS=3 # 检查 Lab 5 三核功能
-make check                  # 检查 Lab 1–5，默认每个 1、2、3、8 核
+```text
+help    查看当前实验支持的命令
+heap    运行 Lab 5 用户堆演示
+htest   运行 Lab 5 堆相关检查
+quit    退出本项目的 QEMU
 ```
 
-单一配置可用 `python3 scripts/check.py --lab 2 --cpus 3`。检查包含重新编译、ELF 入口、多核启动、自检、真实串口交互和正常退出；Lab 2 加入页池与 MMU 检查，Lab 3 加入每核时钟与串口中断计数；Lab 4 加入真实用户执行、完整现场、保护异常、用户期间时钟与 UART 中断及资源回收。
+前两个堆命令只适用于提供它们的 Lab 5。`quit` 是我们项目的诊断台命令，不一定适用于其他系统；例如 xv6 的退出方法不同。
 
-验证记录归各实验所有，运行汇总如下：
+自动检查示例：
 
-- [Lab 1](lab1/docs/evidence/summary.txt)
-- [Lab 2](lab2/docs/evidence/summary.txt)
-- [Lab 3](lab3/docs/evidence/summary.txt)
-- [Lab 4](lab4/docs/evidence/summary.txt)
-- [Lab 5](lab5/docs/evidence/summary.txt)
+```bash
+make -C lab5 check CHECK_CPUS=3  # 检查 Lab 5 的三核配置
+make -C lab1 check               # 检查 Lab 1 默认的多个核数
+make check                       # 检查 Lab 1～5，默认各运行 1、2、3、8 核
+```
 
+检查过程会构建、启动 QEMU 并保存本次输出。已保存的结果见 [Lab 1](lab1/docs/evidence/summary.txt)、[Lab 2](lab2/docs/evidence/summary.txt)、[Lab 3](lab3/docs/evidence/summary.txt)、[Lab 4](lab4/docs/evidence/summary.txt) 和 [Lab 5](lab5/docs/evidence/summary.txt)。Lab 1～4 有 1、2、3、8 核通过记录；Lab 5 有 1、2、3 核通过记录，8 核尚无记录。已有记录不代表这次阅读 README 时重新运行了测试。
 
-各实验的 `docs/evidence/cpuN/` 分别保存 `build.log`、`elf.log` 和 `runtime.log`；独立构建证明在同一实验的 `docs/evidence/standalone-build.log`。`make check` 的总体结果打印到终端，每个实验保存自己的汇总。
+## 六、QEMU、开发板和我们的程序
 
-**已保存的验收记录：** Lab 1–4 的 1、2、3、8 核共 16 个配置通过；Lab 5 的 QEMU 单核、双核检查于 2026-10-30 通过，三核检查于 2026-10-22 和 2026-10-28 通过。记录覆盖堆分配、跨页读写、空闲区分割/合并/复用、失败回滚、权限故障和资源回收；Lab 5 的 8 核尚未记录。
+QEMU 是电脑上的模拟器；VisionFive 2 是真实的 RISC-V 开发板。我们此前给 microSD 卡烧录的是适用于开发板的 Ubuntu 系统，用来准备和检查开发板环境。**Ubuntu 镜像不是 PugeZhangOS，我们的内核也尚未在板上启动。**
 
-支持环境为 QEMU `virt`、128 MiB RAM；已验证的工具为 QEMU 5.1.0、默认 OpenSBI 0.7、RISC-V GCC 13.3.0。Lab 1 自己完成 M→S 切换；Lab 2–4 由 OpenSBI 提供 S 模式入口。两个启动方式的加载地址与代码分别固定在各自目录。
+要把自己的内核运行到板上，还需要核对并适配启动流程、内存布局和串口等设备，再用实际启动日志验证。开发板资料和已有操作记录在 [Lab 0 参考资料](lab0/docs/reference/README.md)中。
 
-## 怎样理解和比较
+## 七、从哪里继续读
 
-[系统架构](ARCHITECTURE.md)解释完整模块及未来接入边界；[开发约定](docs/DEVELOPMENT.md)说明后续阶段怎样接续。源码阅读顺序、实验说明和验收现象分别写在对应 Lab 的 README 中。
+1. 先从本文件理解“Lab 阶段”和“系统模块”的区别。
+2. 打开 [Lab 5 README](lab5/README.md)，对照 `heap` 输出理解用户堆的申请与释放。
+3. 看 [Lab 6 README](lab6/README.md) 和其中的课程资料，了解下一阶段要实现什么。
+4. 需要查模块细节时再看 [架构说明](ARCHITECTURE.md)；开发阶段的约定见 [开发约定](docs/DEVELOPMENT.md)。
 
-小巧思也按阶段区分：Lab 1 的每核启动记录，Lab 2 的页归还检查与虚拟地址翻译窗口，Lab 3 的真实中断计数，Lab 4 的进程启动卡，Lab 5 的实时堆空闲区地图。它们用于观察实际状态。
-
-[Lab 0 本人实验记录](lab0/docs/NOTES.md)保留真实的 xv6 操作与理解。后续个人记录随对应实验放在 `labN/docs/NOTES.md`，有实际记录时再创建。Lab 1–5 内核由 Agent 协助实现；Lab 5 规格说明本人理解和板上操作尚待补充，记录归属如实保留。
-
-过期设计和日志已移出当前项目，旧版本仍可通过 Git 历史查看。实验资料与日志归对应 Lab，根 `docs/` 仅保存全系统文档。GitHub 的 `main` 首页用于整体框架和全阶段索引，`lab-3` 保留已验收的 Lab 3 基础版本。
-
-课程入口：[ECNU OSLab 2026 任务仓库](https://gitee.com/christinaaa/ecnu-oslab-2026-task)。旁边的 `../xv6-labs-2020/` 用于参考，当前内核不链接其代码。
+我们保留每个阶段的真实验证记录。Lab 1～5 由 Agent 协助实现；个人的理解、规格解释和亲手操作需要如实记录，不能把自动测试或 Agent 的工作写成本人已经完成。已有的个人记录见 [Lab 0 笔记](lab0/docs/NOTES.md)。

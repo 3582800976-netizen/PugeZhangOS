@@ -1,0 +1,2 @@
+panic! recursive spinlock acquire
+qemu-system-riscv64: terminating on signal 15 from pid 2 (python3)

@@ -1,0 +1,86 @@
+--- a/src/kernel/main.c
++++ b/src/kernel/main.c
+@@ -3,6 +3,7 @@
+ #include "mem/mod.h"
+ #include "trap/mod.h"
+ extern void _entry(void);
++extern void lab3_probe(void);
+ 
+ // OpenSBI 选择一个启动 hart；所有共享初始化在 HSM 启动其他核前完成。
+ static int boot_hart = -1;
+@@ -38,5 +39,6 @@
+     timer_init();
+     intr_on();
+     printf("cpu %d is ready with interrupts!\n", hartid);
++    lab3_probe();
+     while (1) asm volatile("wfi");
+ }
+--- a/src/kernel/trap/trap_kernel.c
++++ b/src/kernel/trap/trap_kernel.c
+@@ -135,9 +135,12 @@
+     plic_complete(irq);
+ }
+ 
++uint64 lab3_timer_count[NCPU];
++
+ // 时钟中断处理 (当前内核的时钟源由OpenSBI设置)
+ void timer_interrupt_handler()
+ {
++    __atomic_add_fetch(&lab3_timer_count[mycpuid()], 1, __ATOMIC_RELAXED);
+     // 提前预约下一次时钟，避免重复响应已经过期的事件。
+     sbi_ret_t ret = sbi_set_timer(r_time() + INTERVAL);
+     if (ret.error != SBI_SUCCESS)
+--- /dev/null
++++ b/src/kernel/probe.c
+@@ -0,0 +1,15 @@
++#include "arch/mod.h"
++#include "lib/mod.h"
++#include "trap/mod.h"
++extern uint64 lab3_timer_count[NCPU];
++extern int lab3_register_probe(void);
++void lab3_probe(void)
++{
++    int id = mycpuid();
++    uint64 before = __atomic_load_n(&lab3_timer_count[id], __ATOMIC_RELAXED);
++    if (id == 0) printf("[timer-start] %d\n", (int)timer_get_ticks());
++    assert(lab3_register_probe(), "register state corrupted");
++    uint64 after = __atomic_load_n(&lab3_timer_count[id], __ATOMIC_RELAXED);
++    assert(after > before, "hart did not receive timer");
++    printf("[timer-end] hart=%d ticks=%d interrupts=%d regs=PASS\n", id, (int)timer_get_ticks(), (int)(after-before));
++}
+--- /dev/null
++++ b/src/kernel/register_probe.S
+@@ -0,0 +1,33 @@
++# Test trap preservation of representative caller- and callee-saved registers.
++.section .text
++.globl lab3_register_probe
++lab3_register_probe:
++    addi sp,sp,-32
++    sd s0,0(sp)
++    sd s1,8(sp)
++    sd ra,16(sp)
++    li s0,0x13579bdf
++    li s1,0x2468ace0
++    li t0,0x31415926
++    li t1,0x27182818
++    csrr a1,time
++    li a2,3000000
++    add a2,a2,a1
++1:  csrr a1,time
++    bltu a1,a2,1b
++    li a1,0x13579bdf
++    bne s0,a1,2f
++    li a1,0x2468ace0
++    bne s1,a1,2f
++    li a1,0x31415926
++    bne t0,a1,2f
++    li a1,0x27182818
++    bne t1,a1,2f
++    li a0,1
++    j 3f
++2:  li a0,0
++3:  ld s0,0(sp)
++    ld s1,8(sp)
++    ld ra,16(sp)
++    addi sp,sp,32
++    ret

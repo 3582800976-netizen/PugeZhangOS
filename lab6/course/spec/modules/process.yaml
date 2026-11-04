@@ -1,0 +1,149 @@
+module: kernel/process
+owns:
+- src/kernel/proc/proc.c
+- src/kernel/proc/swtch.S
+- src/kernel/proc/type.h
+- src/kernel/proc/method.h
+state:
+  proc_list: NPROC个进程槽；UNUSED、EMBRYO、SLEEPING、RUNNABLE、RUNNING、ZOMBIE状态由各自proc.lock保护。
+  proc_t: 包含lock、state、pid、parent、exit_code、sleep_space、kstack、pgtbl、trapframe、heap_top、ustack_npage、mmap、context、name。
+  cpus: 每hart的cpu_t含当前proc、scheduler上下文、noff中断关闭嵌套数和intena最外层关闭前的使能状态。
+  context_t: 按ra、sp、s0至s11顺序存放14个uint64，与swtch的保存恢复布局一致。
+  user_trapframe_t: 36个uint64依次为kernel_satp、kernel_sp、kernel_trap、epc、kernel_hartid、ra、sp、gp、tp、t0、t1、t2、s0、s1、a0至a7、s2至s11、t3至t6；与trampoline偏移一致。
+  pid_lock: 保护单调分配的pid，首个pid为1。
+  wait_lock: 保护parent关系和wait检查条件至睡眠的同步；其锁序早于任意进程锁。
+  proczero: 首进程及孤儿收养者；正常实验流程持续运行并回收子进程，若死亡则保留ZOMBIE槽直到重启。
+rules:
+- 一个进程至多在一个hart上RUNNING；每个进程槽拥有独立的一页内核栈及相邻不可访问的guard page。
+- EMBRYO尚不可调度；地址空间、trapframe、父子关系完整后才能发布为RUNNABLE。
+- 需要同时持有wait_lock和进程锁时，必须先获取wait_lock；不得持进程锁等待wait_lock。
+- scheduler与被调度进程跨swtch交接同一进程锁；重新运行的进程按当前hart恢复中断记账，不假定仍在原hart。
+- cpus.noff/intena由lock模块维护；proc_init不得在已有中断嵌套或持锁期间清零它们。
+- 进程退出只发布ZOMBIE；wait负责释放用户页、页表页、trapframe和mmap节点，内核栈保留给进程槽复用。
+functions:
+  cpu_t *mycpu(void);:
+    pre:
+    - 当前hart的tp包含有效hart编号；调用者关闭中断以避免使用期间迁移。
+    effects:
+    - 读取当前hart编号。
+    post:
+    - 返回对应cpu_t；非法编号属于内核错误并panic。
+  proc_t *myproc(void);:
+    effects:
+    - 在临时关闭中断的保护下读取当前hart的proc并恢复原中断嵌套。
+    post:
+    - 返回当前进程；scheduler无当前进程时返回NULL。
+  void proc_init(void);:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 
+  pgtbl_t proc_pgtbl_init(uint64 trapframe);:
+    pre:
+    - 
+    effects:
+    -
+    post:
+    - 
+  proc_t *proc_alloc(void);:
+    effects:
+    - 
+    post:
+    - 
+  void proc_free(proc_t *p);:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 
+  void proc_make_first(void);:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 
+  void proc_return(void) __attribute__((noreturn));:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 
+  int proc_fork(void);:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 
+  void proc_yield(void);:
+    effects:
+    - 
+    post:
+    - 
+  void proc_sched(void);:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    -
+  void proc_scheduler(void) __attribute__((noreturn));:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 
+  swtch:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 
+  void proc_sleep(void *sleep_space, spinlock_t *lock);:
+    pre:
+    - 
+    effects:
+    - 
+    - 
+  void proc_wakeup(void *sleep_space);:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    -
+  void proc_try_wakeup(proc_t *p);:
+    pre:
+    - 
+    effects:
+    -
+    post:
+    - 
+  void proc_reparent(proc_t *parent);:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 。
+  void proc_exit(int exit_code) __attribute__((noreturn));:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 
+  int proc_wait(uint64 user_addr);:
+    pre:
+    - 
+    effects:
+    - 
+    post:
+    - 

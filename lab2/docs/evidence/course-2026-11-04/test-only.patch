@@ -1,0 +1,105 @@
+--- a/src/kernel/main.c
++++ b/src/kernel/main.c
+@@ -2,6 +2,7 @@
+ #include "lib/mod.h"
+ #include "mem/mod.h"
+ extern void _entry(void);
++extern void lab2_test(void);
+ 
+ // 固件选择一个初始 hart；HSM 从核启动前共享初始化已经完成。
+ static int boot_hart = -1;
+@@ -32,5 +33,6 @@
+         kvm_inithart();
+         printf("cpu %d is booting with OpenSBI!\n", hartid);
+     }
++    lab2_test();
+     while (1) asm volatile("wfi");
+ }
+--- a/src/kernel/mem/pmem.c
++++ b/src/kernel/mem/pmem.c
+@@ -61,3 +61,13 @@
+     node->next = r->list_head.next; r->list_head.next = node; r->allocable++;
+     spinlock_release(&r->lk);
+ }
++
++// 测试副本专用：读取现有池计数，不纳入交付内核。
++uint32 lab2_test_free_count(bool in_kernel)
++{
++    alloc_region_t *r = in_kernel ? &kern_region : &user_region;
++    spinlock_acquire(&r->lk);
++    uint32 n = r->allocable;
++    spinlock_release(&r->lk);
++    return n;
++}
+--- /dev/null
++++ b/src/kernel/test.c
+@@ -0,0 +1,69 @@
++#include "arch/mod.h"
++#include "mem/mod.h"
++#include "lib/mod.h"
++extern uint64 boot_dtb;
++extern uint32 lab2_test_free_count(bool in_kernel);
++static int test_ready;
++static uint32 baseline_count;
++static spinlock_t sum_lock;
++static int sum;
++static uint64 held[2];
++static int arrived, inspected, done;
++void lab2_test(void)
++{
++    int id = (int)r_tp();
++    assert((r_satp() >> 60) == 8, "satp is not Sv39");
++    if (id == 0) {
++        baseline_count = lab2_test_free_count(false);
++        spinlock_init(&sum_lock, "test sum");
++        __atomic_store_n(&test_ready, 1, __ATOMIC_RELEASE);
++    } else while (!__atomic_load_n(&test_ready, __ATOMIC_ACQUIRE)) ;
++    for (int i = 0; i < 100; i++) {
++        uint64 p = (uint64)pmem_alloc(false);
++        __atomic_store_n(&held[id], p, __ATOMIC_RELAXED);
++        __atomic_add_fetch(&arrived, 1, __ATOMIC_ACQ_REL);
++        while (__atomic_load_n(&arrived, __ATOMIC_ACQUIRE) < 2 * (i + 1)) ;
++        assert(__atomic_load_n(&held[0], __ATOMIC_ACQUIRE) != __atomic_load_n(&held[1], __ATOMIC_ACQUIRE), "concurrent duplicate pages");
++        __atomic_add_fetch(&inspected, 1, __ATOMIC_ACQ_REL);
++        while (__atomic_load_n(&inspected, __ATOMIC_ACQUIRE) < 2 * (i + 1)) ;
++        pmem_free(p, false);
++        spinlock_acquire(&sum_lock); sum++; spinlock_release(&sum_lock);
++    }
++    __atomic_add_fetch(&done, 1, __ATOMIC_RELEASE);
++    if (id != 0) return;
++    while (__atomic_load_n(&done, __ATOMIC_ACQUIRE) < 2) ;
++    assert(sum == 200, "inherited spinlock count");
++    assert(lab2_test_free_count(false) == baseline_count, "concurrent count not restored");
++    uint64 p[10];
++    for (int i = 0; i < 10; i++) { p[i] = (uint64)pmem_alloc(false); assert((p[i] & (PGSIZE - 1)) == 0, "page alignment"); for (int j = 0; j < i; j++) assert(p[i] != p[j], "page duplicate"); memset((void *)p[i], 0xa5, PGSIZE); }
++    assert(lab2_test_free_count(false) == baseline_count - 10, "10-page count");
++    for (int i = 0; i < 10; i++) pmem_free(p[i], false);
++    assert(lab2_test_free_count(false) == baseline_count, "10-page count restore");
++    for (int i = 0; i < 10; i++) { uint8 *x = pmem_alloc(false); for (int j = 0; j < PGSIZE; j++) assert(x[j] == 0, "page not zero"); p[i] = (uint64)x; }
++    for (int i = 0; i < 10; i++) pmem_free(p[i], false);
++    pgtbl_t root = pmem_alloc(true);
++    uint64 a = (uint64)pmem_alloc(false), b = (uint64)pmem_alloc(false);
++    vm_mappages(root, 0x40000000, a, PGSIZE, PTE_R | PTE_W);
++    vm_mappages(root, 0x40001000, b, PGSIZE, PTE_R);
++    pte_t *one = vm_getpte(root, 0x40000000, false), *two = vm_getpte(root, 0x40001000, false);
++    assert(one && two && PTE_TO_PA(*one) == a && PTE_TO_PA(*two) == b, "mapping physical addr");
++    assert((*one & (PTE_V|PTE_R|PTE_W)) == (PTE_V|PTE_R|PTE_W) && (*two & (PTE_V|PTE_R|PTE_W)) == (PTE_V|PTE_R), "mapping permissions");
++    vm_unmappages(root, 0x40000000, 2 * PGSIZE, true);
++    assert(!(*one & PTE_V) && !(*two & PTE_V), "unmap valid bit");
++    pgtbl_t active = (pgtbl_t)((r_satp() & ((1ULL << 44) - 1)) << 12);
++    uint64 frame = (uint64)pmem_alloc(false);
++    vm_mappages(active, 0x40000000, frame, PGSIZE, PTE_R | PTE_W);
++    *(volatile uint64 *)0x40000000 = 0x1234abcdULL;
++    assert(*(volatile uint64 *)frame == 0x1234abcdULL, "hardware alias write");
++    *(volatile uint64 *)frame = 0x7654fedcULL;
++    assert(*(volatile uint64 *)0x40000000 == 0x7654fedcULL, "hardware alias read");
++    vm_unmappages(active, 0x40000000, PGSIZE, true);
++    uint8 *dtb = (uint8 *)boot_dtb;
++    assert(dtb && dtb[0] == 0xd0 && dtb[1] == 0x0d && dtb[2] == 0xfe && dtb[3] == 0xed, "DTB header lost");
++    intr_on(); push_off(); push_off();
++    assert(intr_get() == 0, "nested interrupt disable");
++    pop_off(); assert(intr_get() == 0, "nested interrupt early restore");
++    pop_off(); assert(intr_get() != 0, "nested interrupt restore"); intr_off();
++    printf("[lab1-regression] decimal=%d hex32=%p hex64=%x char=%c string=%s percent=%%\n", (-2147483647-1), (uint32)0xffffffffU, (uint64)0x123456789abcdef0ULL, 'Z', (char *)0);
++    printf("[lab2-check] dual-hart Sv39, concurrent pages, 10-page count/zero/reuse, inherited lock and interrupt nesting, PTE map/unmap, hardware alias, DTB PASS\n");
++}
