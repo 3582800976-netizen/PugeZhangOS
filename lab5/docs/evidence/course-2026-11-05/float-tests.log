@@ -1,0 +1,16 @@
+/usr/lib/gcc-cross/riscv64-linux-gnu/13/../../../../riscv64-linux-gnu/bin/ld: warning: /tmp/lab6-float-check-c6_ydr8d/float-test.elf has a LOAD segment with RWX permissions
+float-host: PASS (3000 finite binary64 values)
+float-riscv-disassembly: PASS (no floating-point instructions)
+case0=0.000000 next=42
+case1=-0.000000 next=42
+case2=1.500000 next=42
+case3=-1.500000 next=42
+case4=0.100000 next=42
+case5=0.000000 next=42
+case6=18446744073709549568.000000 next=42
+case7=0.000000 next=42
+probe=1.500000 next=42
+registers=1
+[float-test] done
+qemu-system-riscv64: terminating on signal 15 from pid 32 (timeout)
+float-riscv-qemu: PASS (timeout stopped the waiting test kernel)

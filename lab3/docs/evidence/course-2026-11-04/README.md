@@ -19,3 +19,5 @@ make -C lab3/course run
 将另一个测试副本的 `src/kernel/trap/type.h` 中 `INTERVAL` 从 1,000,000 临时改为 200,000，其余测试相同，构建和输出见 [fast-build.log](fast-build.log)、[fast-runtime.log](fast-runtime.log)。本次每核观察到的中断次数由 2 次增加到 14 次；调度与时间测量存在变化，这是一组实验现象，不是精确频率保证。
 
 测试结束由脚本或 `timeout` 发送 SIGTERM；这不是内核自主关机。测试只检查了部分代表性寄存器、有限的串口输入和双核 QEMU，尚未覆盖所有异常、持续压力或开发板；不能据此声称全部课程验收通过。
+
+后续重跑、构建修复及 GDB 入口验证见[复查记录](../recheck-2026-11-04/README.md)。

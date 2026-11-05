@@ -1,0 +1,2 @@
+#include "sys.h"
+int main(void) { if(syscall(SYS_wait,0)!=-1) {syscall(SYS_print_str,"NOCHILD-FAIL\n");for(;;){}} long pid=syscall(SYS_fork); if(pid==0){syscall(SYS_exit,1234);for(;;){}} long bad=syscall(SYS_wait,1); int status=-1; long got=syscall(SYS_wait,&status); if(bad==-1 && got==pid && status==1234) syscall(SYS_print_str,"RETRY-PASS\n"); else syscall(SYS_print_str,"RETRY-FAIL\n");for(;;){} }

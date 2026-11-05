@@ -25,19 +25,22 @@ functions:
 
   void trap_user_handler(void):
     pre:
-    - 
+    - 由 user_vector 在切换到内核页表后进入；当前 hart 拥有有效进程和 trapframe。
     effects:
-    - 
+    - 切换 stvec 到内核入口、保存用户 sepc；识别系统调用、时钟中断和外部中断。
+    - 对 ecall 前进 4 字节，调用号 0 输出 hello 并返回 0，未知调用返回 -1。
+    - 用户异常时记录原因并切换回内核执行流；不对普通用户错误触发内核 panic。
     post:
-    - 
+    - 已处理的调用或中断进入 trap_user_return；异常进程停止，内核可继续响应事件。
 
   void trap_user_return(void):
     pre:
-    - 
+    - 当前 hart 拥有有效进程、用户页表、trapframe 和内核栈。
     effects:
-    - 
+    - 关闭中断，设置 user_vector、trapframe 中的内核恢复信息、用户 sepc 和 sstatus。
+    - 通过 TRAMPOLINE 中的 user_return 切换用户页表并恢复用户寄存器。
     post:
-    - 
+    - 以 sret 返回 U-mode，不通过此调用直接返回内核。
 
   user_return:
     pre:

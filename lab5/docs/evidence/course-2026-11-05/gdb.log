@@ -1,0 +1,7 @@
+0x0000000000001000 in ?? ()
+Hardware assisted breakpoint 1 at 0x80200000: file src/kernel/boot/entry.S, line 25.
+
+Thread 1 hit Breakpoint 1, _entry () at src/kernel/boot/entry.S:25
+25	        csrci sstatus, 2
+pc             0x80200000	0x80200000 <_entry>
+[Inferior 1 (process 1) detached]

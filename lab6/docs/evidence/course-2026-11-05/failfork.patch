@@ -1,0 +1,41 @@
+--- a/src/kernel/mem/pmem.c
++++ b/src/kernel/mem/pmem.c
+@@ -2,6 +2,9 @@
+ 
+ // 空闲链和位图共同记录每页的所有权；两段页池分别持锁。
+ static alloc_region_t kern_region, user_region;
++int audit_budget_kernel = -1, audit_budget_user = -1;
++void audit_set_budget(int value, int kernel) { if (kernel) audit_budget_kernel=value; else audit_budget_user=value; }
++uint64 audit_pool_count(int kernel) { alloc_region_t *r = kernel ? &kern_region : &user_region; spinlock_acquire(&r->lk); uint64 n = r->allocable; spinlock_release(&r->lk); return n; }
+ #define MAX_MANAGED_PAGES (128U * 1024U * 1024U / PGSIZE)
+ static uint8 allocated[(MAX_MANAGED_PAGES + 7) / 8];
+ extern uint64 boot_dtb;
+@@ -81,6 +84,9 @@
+         spinlock_release(&r->lk);
+         return NULL;
+     }
++    int *budget = in_kernel ? &audit_budget_kernel : &audit_budget_user;
++    if (*budget == 0) { spinlock_release(&r->lk); return NULL; }
++    if (*budget > 0) (*budget)--;
+     r->list_head.next = page->next;
+     r->allocable--;
+     uint32 i = page_index((uint64)page);
+--- a/src/kernel/syscall/syscall.c
++++ b/src/kernel/syscall/syscall.c
+@@ -1,4 +1,6 @@
+ #include "mod.h"
++extern void audit_set_budget(int, int);
++extern uint64 audit_pool_count(int);
+ 
+ // 跳转表: 系统调用号 -> 系统调用服务函数
+ static uint64 (*syscalls[])(void) = {
+@@ -21,6 +23,9 @@
+ 
+     assert(p != NULL && p->tf != NULL, "syscall: missing process context");
+     uint64 sys_num = p->tf->a7;
++    if (sys_num == 11) { audit_set_budget((int)p->tf->a0, (int)p->tf->a1); p->tf->a0=0; return; }
++    if (sys_num == 12) { p->tf->a0=audit_pool_count(1); return; }
++    if (sys_num == 13) { p->tf->a0=audit_pool_count(0); return; }
+     if (sys_num > SYS_MAX_NUM || syscalls[sys_num] == NULL)
+     {
+         p->tf->a0 = (uint64)-1;

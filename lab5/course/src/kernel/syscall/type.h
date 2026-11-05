@@ -3,14 +3,16 @@
 
 /* 系统调用号 */
 
+#define SYS_helloworld 0 // Lab 4 首用户进程的问候
 #define SYS_copyin 1    // 用户->内核数据复制
 #define SYS_copyout 2   // 内核->用户数据复制
 #define SYS_copyinstr 3 // 用户->内核字符串复制
 #define SYS_brk 4       // 调整堆边界
 #define SYS_mmap 5      // 创建内存映射
 #define SYS_munmap 6    // 解除内存映射
+#define SYS_printf 7    // 输出受检查的用户字符串
 
-#define SYS_MAX_NUM 6
+#define SYS_MAX_NUM 7
 
 /* 可以传入的最大字符串长度 */
 #define STR_MAXLEN 127

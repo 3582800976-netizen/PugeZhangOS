@@ -2,59 +2,48 @@
 #include "lib/mod.h"
 #include "mem/mod.h"
 #include "trap/mod.h"
-//_entry在kernel.ld中定义 将后续hart中的启动地址定义为该地址
+#include "proc/method.h"
 extern void _entry(void);
 
-static volatile int initialized = 0;
+// OpenSBI 选择一个启动 hart；所有共享初始化在 HSM 启动其他核前完成。
+static int boot_hart = -1;
+static int initialized;
 
 void main(void)
 {
-    uint64 hartid = r_tp();
-
-    if (hartid == 0)
-    {
+    intr_off();
+    int hartid = (int)r_tp();
+    int expected = -1;
+    if (__atomic_compare_exchange_n(&boot_hart, &expected, hartid, false,
+                                     __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE)) {
         print_init();
-        printf("cpu %d is booting with OpenSBI!\n", (int)hartid);
         pmem_init();
         kvm_init();
-
-        // trap中各个CPU共享的初始化: PLIC和系统时钟
-        // 必须放在其他hart启动之前, 否则它们可能在初始化完成前就走进中断
+        kvm_inithart();
         trap_kernel_init();
-
-        __sync_synchronize();
-        initialized = 1;
-
-        for (uint64 id = 1; id < NCPU; id++)
-        {
+        __atomic_store_n(&initialized, 1, __ATOMIC_RELEASE);
+        for (int id = 0; id < NCPU; id++) {
+            if (id == hartid) continue;
             sbi_ret_t ret = sbi_hart_start(id, (uint64)_entry, 0);
-            if (ret.error != SBI_SUCCESS)
-            {
-                printf("failed to start cpu %d: error %d\n",
-                       (int)id, (int)ret.error);
+            if (ret.error != SBI_SUCCESS) {
+                printf("failed to start cpu %d: error %d\n", id, (int)ret.error);
                 panic("sbi_hart_start");
             }
         }
+    } else {
+        while (!__atomic_load_n(&initialized, __ATOMIC_ACQUIRE)) ;
+        kvm_inithart();
     }
-    else
-    {
-        while (!initialized)
-            ;
-        __sync_synchronize();
-        printf("cpu %d is booting with OpenSBI!\n", (int)hartid);
-    }
-
-    // 以下初始化是每个CPU各自独有的
-
-    // 切换到内核页表 (必须等CPU-0把内核页表建好)
-    kvm_inithart();
-
-    // PLIC开关, 中断入口stvec, 中断使能位
+    // 先准备好中断入口、控制器和时钟，再打开 S 模式全局中断。
     trap_kernel_inithart();
-
-    // 设置本CPU的第一次时钟事件, 并打开S-mode时钟中断
     timer_init();
-
-    while (1)
-        asm volatile("wfi");
+    intr_on();
+    printf("cpu %d is ready with interrupts!\n", hartid);
+    // 按课程契约，首进程固定在 hart 0 上运行。
+    if (hartid == 0) {
+        proc_make_first();
+        intr_on();
+        printf("[lab4] user process stopped; kernel remains alive\n");
+    }
+    while (1) asm volatile("wfi");
 }

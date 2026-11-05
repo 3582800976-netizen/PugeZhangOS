@@ -24,8 +24,8 @@ void uart_init(void)
 	// 清零和使能FIFO模式
 	WriteReg(FCR, FCR_FIFO_ENABLE | FCR_FIFO_CLEAR);
 
-	// 使能输出队列和接收队列的中断
-	WriteReg(IER, IER_TX_ENABLE | IER_RX_ENABLE);
+	// 同步发送无需 TX 中断；仅在接收到字符时触发中断。
+	WriteReg(IER, IER_RX_ENABLE);
 }
 
 // 单个字符输出
@@ -67,6 +67,14 @@ void uart_intr(void)
 		int c = uart_getc_sync();
 		if (c == -1)
 		break;
-		uart_putc_sync(c);
+        if (c == '\r' || c == '\n') {
+            uart_putc_sync('\n');
+        } else if (c == 8 || c == 127) {
+            uart_putc_sync('\b');
+            uart_putc_sync(' ');
+            uart_putc_sync('\b');
+        } else {
+            uart_putc_sync(c);
+        }
 	}
 }

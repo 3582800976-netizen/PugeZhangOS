@@ -149,6 +149,7 @@ typedef struct mmap_region
 {
     uint64 begin;             // 起始地址
     uint32 npages;            // 管理的页面数量
+    int perm;                 // 相邻区域只有权限一致时才能合并
     struct mmap_region *next; // 链表指针
 } mmap_region_t;
 

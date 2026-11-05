@@ -34,22 +34,17 @@ QEMUOPTS = -machine virt -bios none -kernel $(TARGET)/kernel/kernel-qemu.elf  # 
 QEMUOPTS += -m 128M -smp $(CPUNUM) -nographic  # 内存、CPU数量及无图形界面配置
 
 # 调试相关配置
-GDBPORT = $(shell expr `id -u` % 5000 + 25000)  # 动态计算GDB端口号
-# 根据QEMU版本选择合适的GDB调试参数
-QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
-	then echo "-gdb tcp::$(GDBPORT)"; \
-	else echo "-s -p $(GDBPORT)"; fi)
-
-# 生成GDB初始化文件
-.gdbinit: .gdbinit.tmpl-riscv
-	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
+GDBPORT := $(shell expr `id -u` % 5000 + 25000)
+# 仅允许本机调试器连接。
+QEMUGDB = -gdb tcp:127.0.0.1:$(GDBPORT)
 
 # 运行目标：先构建再启动QEMU
 run: build
 	$(QEMU) $(QEMUOPTS)
 
 # 调试目标：启动带GDB调试的QEMU
-debug: $(KERN) .gdbinit
+debug: build
+	@echo "In another terminal: gdb-multiarch $(ELFKernel) -ex 'target remote :$(GDBPORT)'"
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
 # 构建目标：创建输出目录并编译内核

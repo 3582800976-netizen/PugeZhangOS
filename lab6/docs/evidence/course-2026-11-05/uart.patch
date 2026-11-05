@@ -1,0 +1,10 @@
+--- a/src/kernel/trap/trap_user.c
++++ b/src/kernel/trap/trap_user.c
+@@ -35,6 +35,7 @@
+         timer = true;
+     } else if (cause == ((1ULL << 63) | 9)) {
+         external_interrupt_handler();
++        printf("[user-uart-irq]\n");
+     } else if (cause == 13 || cause == 15) {
+         int64 pages = uvm_ustack_grow(p->pgtbl, p->ustack_npage, r_stval());
+         if (pages < 0)

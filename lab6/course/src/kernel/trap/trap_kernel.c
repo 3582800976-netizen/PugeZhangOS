@@ -1,4 +1,5 @@
 #include "mod.h"
+#include "../proc/method.h"
 
 // 中断信息
 static char *interrupt_info[16] = {
@@ -57,6 +58,7 @@ void trap_kernel_init()
 // 初始化trap中各个核心独有的东西
 void trap_kernel_inithart()
 {
+    intr_off();
     // PLIC核心初始化
     plic_inithart();
 
@@ -64,8 +66,7 @@ void trap_kernel_inithart()
     w_stvec((uint64)kernel_vector);
     w_sie(r_sie() | SIE_SEIE);
 
-    // 打开中断
-    intr_on();
+    // 由启动代码在各项本核初始化完成后统一开启全局中断。
 }
 
 // 在kernel_vector()里面调用
@@ -81,7 +82,8 @@ void trap_kernel_handler()
     assert(sstatus & SSTATUS_SPP, "trap_kernel_handler: not from s-mode");
     assert(intr_get() == 0, "trap_kernel_handler: interreput enabled");
 
-    int trap_id = scause & 0xf;
+    uint64 trap_id = scause & ~(1ULL << 63);
+    bool timer = false;
 
     /* 高位bit标识了是中断还是异常 */
     if (scause & 0x8000000000000000ul)
@@ -89,10 +91,17 @@ void trap_kernel_handler()
         // 1-中断处理
         switch (trap_id) // 中断产生原因分类
         {
+        case 5:
+            timer_interrupt_handler();
+            timer = true;
+            break;
+        case 9:
+            external_interrupt_handler();
+            break;
 
         default: // 例外处理
-            printf("\nunexpected interrupt: %s\n", interrupt_info[trap_id]);
-            printf("trap_id = %d, sepc = %p, stval = %p\n", trap_id, sepc, stval);
+            printf("\nunexpected interrupt: %s\n", trap_id < 16 ? interrupt_info[trap_id] : "unknown");
+            printf("trap_id = %x, sepc = %x, stval = %x\n", trap_id, sepc, stval);
             panic("trap_kernel_handler");
         }
     }
@@ -103,25 +112,38 @@ void trap_kernel_handler()
         {
 
         default: // 例外处理
-            printf("\nunexpected exception: %s\n", exception_info[trap_id]);
-            printf("trap_id = %d, sepc = %p, stval = %p\n", trap_id, sepc, stval);
+            printf("\nunexpected exception: %s\n", trap_id < 16 ? exception_info[trap_id] : "unknown");
+            printf("trap_id = %x, sepc = %x, stval = %x\n", trap_id, sepc, stval);
             panic("trap_kernel_handler");
         }
     }
+    // 只有当前进程存在且没有其他自旋锁时才允许切换；切换可能迁移 hart。
+    if (timer && myproc() != NULL && mycpu()->noff == 0)
+        proc_yield();
+    w_sepc(sepc);
+    w_sstatus(sstatus);
 }
 
 // 外设中断处理 (基于PLIC，lab-3只需要识别和处理UART中断)
 void external_interrupt_handler()
 {
+    int irq = plic_claim();
+    if (irq == 0)
+        return;
+    if (irq == UART_IRQ)
+        uart_intr();
+    else
+        printf("unexpected PLIC irq %d\n", irq);
+    plic_complete(irq);
 }
 
 // 时钟中断处理 (当前内核的时钟源由OpenSBI设置)
 void timer_interrupt_handler()
 {
-    // 设置下一次时钟事件
-    // 如果不设置, stimecmp会一直是一个过期的值, CPU处理完这次中断后会立刻再次响应同一个中断
+    sbi_ret_t result = sbi_set_timer(r_time() + INTERVAL);
+    assert(result.error == SBI_SUCCESS, "timer_interrupt_handler: SBI TIME failed");
 
     // 只由启动核更新共享时钟。
-    if (mycpuid() == boot_hartid)
+    if ((uint64)mycpuid() == boot_hartid)
         timer_update();
 }

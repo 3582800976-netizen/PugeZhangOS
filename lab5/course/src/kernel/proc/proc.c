@@ -21,6 +21,14 @@ static proc_t proczero;
 // 完成trapframe和trampoline的映射
 pgtbl_t proc_pgtbl_init(uint64 trapframe)
 {
+    pgtbl_t pgtbl = pmem_alloc(true);
+    if (pgtbl == NULL) return NULL;
+    if (vm_mappages(pgtbl, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X) < 0 ||
+        vm_mappages(pgtbl, TRAPFRAME, trapframe, PGSIZE, PTE_R | PTE_W) < 0) {
+        vm_freewalk(pgtbl);
+        return NULL;
+    }
+    return pgtbl;
 }
 
 /*
@@ -36,8 +44,59 @@ pgtbl_t proc_pgtbl_init(uint64 trapframe)
     code + data (1 page)
     empty space (1 page) 最低的4096字节 不分配物理页，同时不可访问
 
-    注意: 用用户空间的地址映射需要标记 PTE_U
+	注意: 用用户空间的地址映射需要标记 PTE_U
 */
 void proc_make_first()
 {
+    proczero.pid = 1;
+    proczero.kstack = KSTACK(0);
+    void *code = NULL, *stack = NULL;
+    bool code_mapped = false, stack_mapped = false;
+    proczero.tf = pmem_alloc(true);
+    if (proczero.tf == NULL) goto failed;
+    proczero.pgtbl = proc_pgtbl_init((uint64)proczero.tf);
+    if (proczero.pgtbl == NULL || initcode_len == 0 || initcode_len > PGSIZE) goto failed;
+    code = pmem_alloc(false);
+    stack = pmem_alloc(false);
+    if (code == NULL || stack == NULL) goto failed;
+    memmove(code, initcode, initcode_len);
+    // 课程规格规定用户代码页为 RXU；单页映像不允许静态可写数据。
+    if (vm_mappages(proczero.pgtbl, USER_BASE, (uint64)code, PGSIZE,
+                    PTE_U | PTE_R | PTE_X) < 0) goto failed;
+    code_mapped = true;
+    if (vm_mappages(proczero.pgtbl, TRAPFRAME - PGSIZE, (uint64)stack, PGSIZE,
+                    PTE_U | PTE_R | PTE_W) < 0) goto failed;
+    stack_mapped = true;
+    proczero.heap_top = USER_BASE + PGSIZE;
+    proczero.ustack_npage = 1;
+    proczero.mmap = NULL;
+    proczero.tf->user_to_kern_epc = USER_BASE;
+    proczero.tf->sp = TRAPFRAME;
+    proczero.ctx.ra = (uint64)trap_user_return;
+    proczero.ctx.sp = proczero.kstack + PGSIZE;
+    cpu_t *cpu = mycpu();
+    cpu->proc = &proczero;
+    swtch(&cpu->ctx, &proczero.ctx);
+    cpu->proc = NULL;
+    // 页面归页表所有，trapframe 和节点由进程分别归还。
+    uvm_destroy_pgtbl(proczero.pgtbl);
+    while (proczero.mmap != NULL) {
+        mmap_region_t *region = proczero.mmap;
+        proczero.mmap = region->next;
+        mmap_region_free(region);
+    }
+    pmem_free((uint64)proczero.tf, true);
+    proczero.pgtbl = NULL;
+    proczero.tf = NULL;
+    return;
+failed:
+    if (code_mapped) vm_unmappages(proczero.pgtbl, USER_BASE, PGSIZE, true);
+    else if (code != NULL) pmem_free((uint64)code, false);
+    if (stack_mapped) vm_unmappages(proczero.pgtbl, TRAPFRAME - PGSIZE, PGSIZE, true);
+    else if (stack != NULL) pmem_free((uint64)stack, false);
+    if (proczero.pgtbl != NULL) vm_freewalk(proczero.pgtbl);
+    if (proczero.tf != NULL) pmem_free((uint64)proczero.tf, true);
+    proczero.pgtbl = NULL;
+    proczero.tf = NULL;
+    panic("proc_make_first: resource failure");
 }

@@ -1,0 +1,11 @@
+--- a/src/kernel/trap/trap_user.c
++++ b/src/kernel/trap/trap_user.c
+@@ -32,6 +32,8 @@
+             p->tf->a0 = (uint64)-1;
+         }
+     } else if (cause == ((1ULL << 63) | 5)) {
++        static int shown;
++        if (!shown++) printf("[lab4-user-timer]\n");
+         timer_interrupt_handler();
+     } else if (cause == ((1ULL << 63) | 9)) {
+         external_interrupt_handler();

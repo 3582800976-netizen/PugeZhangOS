@@ -37,7 +37,9 @@ extern uint64 boot_hartid;
 #define NCPU        // TODO
 #define FIRST_HART  // TODO
 #else
+#ifndef NCPU
 #define NCPU 2
+#endif
 #define FIRST_HART 0
 #endif
 

@@ -29,5 +29,5 @@ timeout 8s qemu-system-riscv64 -machine virt -bios default \
 
 - 这组测试不代表课程全部验收完成；设备树完整内容及非法输入、硬件权限故障尚未覆盖。
 - 跨核动态更改页表时的 TLB 同步和空页表页回收尚未实现；本次动态映射测试只涉及当前核心。
-- 课程原 Makefile 的 `make clean build` 组合调用存在目录创建问题，请分开执行 `make clean` 和 `make build`。
+- 课程原 Makefile 的构建目录问题在后续[复查](../recheck-2026-11-04/README.md)中已修复。
 - 上述结果来自 QEMU，尚未在 VisionFive 2 上运行。

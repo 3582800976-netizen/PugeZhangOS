@@ -4,6 +4,9 @@
 .section .text.entry
 .global _entry
 _entry:
+        # 本实验的 NCPU 固定为 2，避免异常 hart 在设置栈前越界。
+        li t3, 2
+        bgeu a0, t3, spin
         # CPU_stack 定义于start.c中
         # sp = CPU_stack + ((hartid + 1) * 4096)
         # 将sp置于当前CPU的内核栈的栈顶

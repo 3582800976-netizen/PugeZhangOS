@@ -1,0 +1,8 @@
+riscv64-linux-gnu-gcc -Wall -Werror -O -fno-omit-frame-pointer -ggdb -gdwarf-2 -MD -mcmodel=medany -ffreestanding -fno-common -nostdlib -mno-relax -I. -fno-stack-protector -fno-pie -no-pie -c -o target/kernel/boot/entry.o src/kernel/boot/entry.S
+riscv64-linux-gnu-ld -z max-page-size=4096 -T kernel.ld  target/kernel/boot/entry.o  target/kernel/main.o  target/kernel/boot/start.o  target/kernel/lib/cpu.o  target/kernel/lib/print.o  target/kernel/lib/uart.o  target/kernel/lock/spinlock.o  -o target/kernel/kernel-qemu.elf
+riscv64-linux-gnu-ld: warning: target/kernel/kernel-qemu.elf has a LOAD segment with RWX permissions
+In another terminal: gdb-multiarch target/kernel/kernel-qemu.elf -ex 'target remote :26141'
+qemu-system-riscv64   -machine virt -bios none -kernel target/kernel/kernel-qemu.elf   -m 128M -smp 2 -nographic   -S -gdb tcp:127.0.0.1:26141
+cpu 1 is booting!
+cpu 0 is booting!
+qemu-system-riscv64: terminating on signal 15 from pid 420020 (python3)

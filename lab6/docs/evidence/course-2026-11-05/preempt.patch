@@ -1,0 +1,13 @@
+--- a/src/kernel/syscall/sysfunc.c
++++ b/src/kernel/syscall/sysfunc.c
+@@ -81,6 +81,10 @@
+ */
+ uint64 sys_print_int()
+ {
++    printf("[busy-start]\n");
++    uint64 until = r_time() + 3000000;
++    while (r_time() < until) {}
++    printf("[busy-end]\n");
+     uint32 value;
+     arg_uint32(0, &value);
+     printf("%d", (int32)value);

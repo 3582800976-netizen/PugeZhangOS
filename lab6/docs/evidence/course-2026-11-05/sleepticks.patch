@@ -1,0 +1,10 @@
+--- a/src/kernel/trap/timer.c
++++ b/src/kernel/trap/timer.c
+@@ -54,5 +54,7 @@
+     uint64 start = system_timer.ticks;
+     while (system_timer.ticks - start < ntick)
+         proc_sleep(&system_timer, &system_timer.lk);
++    uint64 actual = system_timer.ticks - start;
+     spinlock_release(&system_timer.lk);
++    printf("[sleep-ticks] requested=%d actual=%d\n", (int)ntick, (int)actual);
+ }

@@ -1,5 +1,6 @@
 #pragma once
 #include "../arch/type.h"
+#include "../lock/type.h"
 
 // 同优先级的上下文
 typedef struct context
@@ -82,6 +83,7 @@ typedef struct mmap_region mmap_region_t;
 enum proc_state
 {
     UNUSED,   // 未被使用
+    EMBRYO,   // 初始化中，尚不可调度
     RUNNABLE, // 准备就绪
     RUNNING,  // 运行中
     SLEEPING, // 睡眠等待

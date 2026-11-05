@@ -15,6 +15,10 @@ endif
 
 # 配置CPU核心数量
 CPUNUM = 2
+ifneq ($(CPUNUM),2)
+$(error Lab 3 expects exactly 2 CPUs; CPUNUM must be 2)
+endif
+.DEFAULT_GOAL := run
 # 定义目标文件输出目录
 TARGET = target
 # 定义各模块路径
@@ -43,27 +47,22 @@ QEMUOPTS = -machine virt -bios default -kernel $(ELFKernel)  # 使用OpenSBI启�
 QEMUOPTS += -m 130M -smp $(CPUNUM) -nographic  # 物理内存从0x80000000到0x88200000
 
 # 调试相关配置
-GDBPORT = $(shell expr `id -u` % 5000 + 25000)  # 动态计算GDB端口号
-# 根据QEMU版本选择合适的GDB调试参数
-QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
-	then echo "-gdb tcp::$(GDBPORT)"; \
-	else echo "-s -p $(GDBPORT)"; fi)
+GDBPORT := $(shell expr `id -u` % 5000 + 25000)
+# 仅允许本机调试器连接。
+QEMUGDB = -gdb tcp:127.0.0.1:$(GDBPORT)
 
 # 引入编译器生成的依赖文件(.d)
 # CFLAGS中的-MD会为每个.o生成同名的.d文件, 里面记录了该目标文件依赖的所有头文件
 # 不引入它们的话, 修改头文件(例如timer/type.h中的INTERVAL)不会触发重新编译
 -include $(KernelOBJ:.o=.d) $(UserOBJ:.o=.d)
 
-# 生成GDB初始化文件
-.gdbinit: .gdbinit.tmpl-riscv
-	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
-
 # 运行目标：先构建再启动QEMU
 run: build
 	$(QEMU) $(QEMUOPTS)
 
 # 调试目标：启动带GDB调试的QEMU
-debug: $(ELFKernel) .gdbinit
+debug: build
+	@echo "In another terminal: gdb-multiarch $(ELFKernel) -ex 'target remote :$(GDBPORT)'"
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
 # 构建目标：创建输出目录并编译内核
@@ -72,7 +71,6 @@ build: $(TARGET) $(ELFKernel)
 # 创建输出目录结构（如果不存在）
 .PHONY: $(TARGET)
 $(TARGET):
-ifeq ($(wildcard $(TARGET)),)
 	@mkdir -p $(TARGET)/kernel
 	@mkdir -p $(TARGET)/kernel/arch
 	@mkdir -p $(TARGET)/kernel/boot
@@ -80,14 +78,13 @@ ifeq ($(wildcard $(TARGET)),)
 	@mkdir -p $(TARGET)/kernel/lib
 	@mkdir -p $(TARGET)/kernel/mem
 	@mkdir -p $(TARGET)/kernel/trap
-endif
 
 # 编译规则：将汇编文件(.S)编译为目标文件(.o)
-$(TARGET)/kernel/%.o: $(KernelPath)/%.S
+$(TARGET)/kernel/%.o: $(KernelPath)/%.S | $(TARGET)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # 编译规则：将C文件(.c)编译为目标文件(.o)
-$(TARGET)/kernel/%.o: $(KernelPath)/%.c
+$(TARGET)/kernel/%.o: $(KernelPath)/%.c | $(TARGET)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # 编译用户态程序
@@ -95,8 +92,8 @@ $(TARGET)/user/%.o: $(UserPath)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 # 链接生成内核ELF文件
-$(ELFKernel): $(KernelOBJ) $(UserOBJ)
-	$(LD) $(LDFLAGS) -T $(KERNEL_LD) $^ -o $@
+$(ELFKernel): $(KernelOBJ) $(UserOBJ) $(KERNEL_LD)
+	$(LD) $(LDFLAGS) -T $(KERNEL_LD) $(KernelOBJ) $(UserOBJ) -o $@
 
 # 清理目标：删除输出目录
 .PHONY: clean

@@ -1,0 +1,17 @@
+baseline-cpu1: PASS
+baseline: PASS
+fork: PASS
+wait: PASS
+copy: PASS
+user-memory: PASS
+waitretry: PASS
+fault: PASS
+codefault: PASS
+uart: PASS
+limit: PASS
+failfork: PASS
+lock: PASS
+sleep: PASS
+preempt: PASS
+sleepticks: PASS
+ownership: PASS

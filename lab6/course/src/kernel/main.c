@@ -2,14 +2,16 @@
 #include "lib/mod.h"
 #include "mem/mod.h"
 #include "trap/mod.h"
+#include "proc/method.h"
 //_entry_secondary是HSM启动其他hart的入口
 extern void _entry_secondary(void);
 
-static volatile int initialized = 0;
+static int initialized;
 
 void main(void)
 {
     uint64 hartid = r_tp();
+    intr_off();
 
     if (hartid == boot_hartid)
     {
@@ -17,13 +19,16 @@ void main(void)
         printf("cpu %d is booting with OpenSBI!\n", (int)hartid);
         pmem_init();
         kvm_init();
+        // 任何可能调用 proc_wakeup 的中断开启前，先初始化进程锁。
+        proc_init();
+        mmap_init();
 
         // trap中各个CPU共享的初始化: PLIC和系统时钟
         // 必须放在其他hart启动之前, 否则它们可能在初始化完成前就走进中断
         trap_kernel_init();
+        proc_make_first();
 
-        __sync_synchronize();
-        initialized = 1;
+        __atomic_store_n(&initialized, 1, __ATOMIC_RELEASE);
 
         for (uint64 id = FIRST_HART; id < NCPU; id++)
         {
@@ -40,9 +45,8 @@ void main(void)
     }
     else
     {
-        while (!initialized)
+        while (!__atomic_load_n(&initialized, __ATOMIC_ACQUIRE))
             ;
-        __sync_synchronize();
         printf("cpu %d is booting with OpenSBI!\n", (int)hartid);
     }
 
@@ -58,7 +62,7 @@ void main(void)
 
     // 设置本CPU的第一次时钟事件, 并打开S-mode时钟中断
     timer_init();
-
-    while (1)
-        asm volatile("wfi");
+    intr_on();
+    proc_scheduler();
+    panic("scheduler returned");
 }

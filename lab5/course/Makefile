@@ -22,6 +22,12 @@ TOOLPREFIX = $(DETECTED_TOOLPREFIX)
 endif
 
 # 配置CPU核心数量, QEMU固定为2
+CPUNUM ?= 2
+ifeq ($(PLATFORM),qemu)
+ifneq ($(CPUNUM),2)
+$(error QEMU course configuration requires CPUNUM=2)
+endif
+endif
 TARGET = target/$(PLATFORM)
 CFLAGS += -I$(TARGET)/user
 ifeq ($(PLATFORM),vf2)
@@ -60,20 +66,13 @@ QEMUOPTS = -machine virt -bios default -kernel $(ELFKernel)  # 使用OpenSBI启�
 QEMUOPTS += -m 130M -smp $(CPUNUM) -nographic  # 物理内存从0x80000000到0x88200000
 
 # 调试相关配置
-GDBPORT = $(shell expr `id -u` % 5000 + 25000)  # 动态计算GDB端口号
-# 根据QEMU版本选择合适的GDB调试参数
-QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
-	then echo "-gdb tcp::$(GDBPORT)"; \
-	else echo "-s -p $(GDBPORT)"; fi)
+GDBPORT ?= $(shell expr `id -u` % 5000 + 25000)
+QEMUGDB = -gdb tcp:127.0.0.1:$(GDBPORT)
 
 # 引入编译器生成的依赖文件(.d)
 # CFLAGS中的-MD会为每个.o生成同名的.d文件, 里面记录了该目标文件依赖的所有头文件
 # 不引入它们的话, 修改头文件(例如timer/type.h中的INTERVAL)不会触发重新编译
 -include $(KernelOBJ:.o=.d) $(UserOBJ:.o=.d)
-
-# 生成GDB初始化文件
-.gdbinit: .gdbinit.tmpl-riscv
-	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 
 # 运行目标：先构建再启动QEMU
 .PHONY: build run debug clean
@@ -82,7 +81,7 @@ run: build
 	$(QEMU) $(QEMUOPTS)
 
 # 调试目标：启动带GDB调试的QEMU
-debug: $(ELFKernel) .gdbinit
+debug: build
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 else
 run debug:

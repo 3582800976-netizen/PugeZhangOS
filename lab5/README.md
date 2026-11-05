@@ -1,5 +1,7 @@
 # Lab 5：用户堆管理与系统调用
 
+**课程框架入口：** [lab5/course](course/README.md)；本次真实检查见 [2026-11-05 测试记录](docs/evidence/course-2026-11-05/README.md)。下面保留此前的资料和旧版本说明，旧版本的自测不能代替课程框架验收。
+
 **状态：已实现，QEMU 三核验收通过。** 本目录以 Lab 4 为完整基础快照，新增空闲区链表、共享节点仓库、动态用户页映射、带参数的堆系统调用和用户态演示。
 
 课程原件：[拔尖班-lab-5.pdf](docs/reference/拔尖班-lab-5.pdf) · [来源与文件校验](docs/reference/README.md)。

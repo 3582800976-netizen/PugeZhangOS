@@ -49,7 +49,7 @@ kernel_vector:
         ld ra, 0(sp)
         ld sp, 8(sp)
         ld gp, 16(sp)
-        # tp寄存器的值可能不可靠
+        # 被抢占的进程可能在另一 hart 恢复；tp 必须保持当前 hart 的编号。
         # ld tp, 24(sp)
         ld t0, 32(sp)
         ld t1, 40(sp)

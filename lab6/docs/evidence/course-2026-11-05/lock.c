@@ -1,0 +1,2 @@
+#include "sys.h"
+int main(void) { long a=syscall(SYS_fork); if(a==0){long r=syscall(11); syscall(SYS_exit,r);for(;;){}} long b=syscall(SYS_fork); if(b==0){long r=syscall(11); syscall(SYS_exit,r);for(;;){}} int x=-1,y=-1; long ra=syscall(SYS_wait,&x),rb=syscall(SYS_wait,&y); if(a>0&&b>0&&ra>0&&rb>0&&ra!=rb&&x==0&&y==0) syscall(SYS_print_str,"LOCK-PASS\n");else syscall(SYS_print_str,"LOCK-FAIL\n");for(;;){} }

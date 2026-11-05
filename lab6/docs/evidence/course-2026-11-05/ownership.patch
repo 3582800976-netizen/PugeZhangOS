@@ -1,0 +1,45 @@
+--- a/src/kernel/proc/proc.c
++++ b/src/kernel/proc/proc.c
+@@ -17,6 +17,9 @@
+ 
+ // 进程结构体数组 + 第一个用户进程的指针
+ static proc_t proc_list[N_PROC];
++int audit_active[N_PROC];
++int audit_switches;
++int audit_collisions;
+ static proc_t *proczero;
+ 
+ // 全局pid + 保护它的锁
+@@ -461,7 +464,13 @@
+                 p->state = RUNNING;
+                 cpu->proc = p;
+                 // 进程锁跨 swtch 交接；切回后由调度器释放。
++                if (__atomic_exchange_n(&audit_active[i], 1, __ATOMIC_ACQ_REL)) {
++                    __atomic_add_fetch(&audit_collisions, 1, __ATOMIC_RELAXED);
++                    panic("audit: simultaneous PID");
++                }
++                __atomic_add_fetch(&audit_switches, 1, __ATOMIC_RELAXED);
+                 swtch(&cpu->ctx, &p->ctx);
++                __atomic_store_n(&audit_active[i], 0, __ATOMIC_RELEASE);
+                 cpu->proc = NULL;
+             }
+             spinlock_release(&p->lk);
+--- a/src/kernel/trap/trap_kernel.c
++++ b/src/kernel/trap/trap_kernel.c
+@@ -144,6 +144,15 @@
+     assert(result.error == SBI_SUCCESS, "timer_interrupt_handler: SBI TIME failed");
+ 
+     // 只由启动核更新共享时钟。
+-    if ((uint64)mycpuid() == boot_hartid)
++    if ((uint64)mycpuid() == boot_hartid) {
+         timer_update();
++        static bool reported;
++        extern int audit_switches, audit_collisions;
++        if (!reported && timer_get_ticks() >= 30) {
++            reported = true;
++            printf("[ownership] switches=%d collisions=%d\n",
++                __atomic_load_n(&audit_switches, __ATOMIC_RELAXED),
++                __atomic_load_n(&audit_collisions, __ATOMIC_RELAXED));
++        }
++    }
+ }

@@ -31,22 +31,39 @@ void pop_off(void)
         intr_on();
 }
 
+
 // 自选锁初始化
 void spinlock_init(spinlock_t *lk, char *name)
 {
+    lk->name = name;
+    lk->cpuid = -1;
+    __atomic_store_n(&lk->locked, 0, __ATOMIC_RELAXED);
 }
 
 // 是否持有自旋锁
 bool spinlock_holding(spinlock_t *lk)
 {
+    return __atomic_load_n(&lk->locked, __ATOMIC_RELAXED) &&
+           __atomic_load_n(&lk->cpuid, __ATOMIC_RELAXED) == mycpuid();
 }
 
 // 获取自选锁
 void spinlock_acquire(spinlock_t *lk)
 {
+    push_off();
+    if (spinlock_holding(lk))
+        panic("recursive spinlock acquire");
+    while (__atomic_exchange_n(&lk->locked, 1, __ATOMIC_ACQUIRE))
+        ;
+    __atomic_store_n(&lk->cpuid, mycpuid(), __ATOMIC_RELAXED);
 }
 
 // 释放自旋锁
 void spinlock_release(spinlock_t *lk)
 {
+    if (!spinlock_holding(lk))
+        panic("spinlock release by non-owner");
+    __atomic_store_n(&lk->cpuid, -1, __ATOMIC_RELAXED);
+    __atomic_store_n(&lk->locked, 0, __ATOMIC_RELEASE);
+    pop_off();
 }

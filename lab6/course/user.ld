@@ -19,18 +19,15 @@ SECTIONS
     *(.rodata .rodata.*)
   }
 
-  .data : {
-    . = ALIGN(16);
+  .data ALIGN(16) : {
     *(.sdata .sdata.*)
-    . = ALIGN(16);
     *(.data .data.*)
   }
 
-  .bss : {
-    . = ALIGN(16);
+  .bss ALIGN(16) : {
     *(.sbss .sbss.*)
-    . = ALIGN(16);
     *(.bss .bss.*)
+    *(COMMON)
   }
 }
 
@@ -38,3 +35,5 @@ SECTIONS
 ASSERT(main == 0x1000, "error: main is not located at 0x1000")
 /* 内核只为initcode映射一个物理页 */
 ASSERT(. <= 0x1000 + 0x1000, "error: initcode is larger than one page")
+/* 单页 RXU 映像不支持可写静态变量；需要可写空间时使用栈或堆。 */
+ASSERT(SIZEOF(.data) == 0 && SIZEOF(.bss) == 0, "error: user image contains writable static data")

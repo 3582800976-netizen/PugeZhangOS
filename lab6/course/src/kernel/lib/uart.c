@@ -72,6 +72,11 @@ void uart_intr(void)
 		int c = uart_getc_sync();
 		if (c == -1)
 		break;
-		uart_putc_sync(c);
+		if (c == 8 || c == 127)
+			printf("\b \b");
+		else if (c == '\r' || c == '\n')
+			printf("\r\n");
+		else
+			printf("%c", c);
 	}
 }

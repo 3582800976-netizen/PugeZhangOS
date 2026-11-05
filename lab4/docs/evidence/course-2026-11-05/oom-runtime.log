@@ -1,0 +1,10 @@
+[oom-check] budget=0 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=1 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=2 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=3 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=4 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=5 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=6 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=7 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=8 kernel=921/921 user=31733/31733 restored=1
+[oom-check] budget=9 kernel=921/921 user=31733/31733 restored=1

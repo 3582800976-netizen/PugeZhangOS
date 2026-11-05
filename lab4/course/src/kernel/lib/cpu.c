@@ -4,17 +4,18 @@ static cpu_t cpus[NCPU];
 
 cpu_t *mycpu(void)
 {
-    int hartid = r_tp();
+    uint64 hartid = r_tp();
+    assert(hartid < NCPU, "mycpu: invalid hart");
     return &cpus[hartid];
 }
 
 int mycpuid(void)
 {
-    int hartid = r_tp();
-    return hartid;
+    uint64 hartid = r_tp();
+    assert(hartid < NCPU, "mycpuid: invalid hart");
+    return (int)hartid;
 }
 proc_t *myproc(void)
 {
-    int hartid = r_tp();
-    return cpus[hartid].proc;
+    return mycpu()->proc;
 }

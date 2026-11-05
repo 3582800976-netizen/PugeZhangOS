@@ -1,0 +1,78 @@
+--- a/src/kernel/main.c
++++ b/src/kernel/main.c
+@@ -5,6 +5,7 @@
+ #include "proc/method.h"
+ //_entry_secondary是HSM启动其他hart的入口
+ extern void _entry_secondary(void);
++extern void audit_lock_init(void);
+ 
+ static int initialized;
+ 
+@@ -21,6 +22,7 @@
+         kvm_init();
+         // 任何可能调用 proc_wakeup 的中断开启前，先初始化进程锁。
+         proc_init();
++        audit_lock_init();
+         mmap_init();
+ 
+         // trap中各个CPU共享的初始化: PLIC和系统时钟
+--- a/src/kernel/lock/sleeplock.c
++++ b/src/kernel/lock/sleeplock.c
+@@ -1,5 +1,6 @@
+ #include "mod.h"
+ #include "../proc/method.h"
++int audit_lock_sleeps;
+ 
+ // 睡眠锁初始化
+ void sleeplock_init(sleeplock_t *lk, char *name)
+@@ -27,8 +28,10 @@
+     proc_t *p = myproc();
+     assert(p != NULL, "sleeplock_acquire: no process");
+     assert(!lk->locked || lk->pid != p->pid, "sleeplock_acquire: recursive");
+-    while (lk->locked)
++    while (lk->locked) {
++        __atomic_add_fetch(&audit_lock_sleeps, 1, __ATOMIC_RELAXED);
+         proc_sleep(lk, &lk->lock);
++    }
+     lk->locked = 1;
+     lk->pid = p->pid;
+     spinlock_release(&lk->lock);
+--- a/src/kernel/syscall/syscall.c
++++ b/src/kernel/syscall/syscall.c
+@@ -1,4 +1,5 @@
+ #include "mod.h"
++extern uint64 audit_lock_call(void);
+ 
+ // 跳转表: 系统调用号 -> 系统调用服务函数
+ static uint64 (*syscalls[])(void) = {
+@@ -21,6 +22,7 @@
+ 
+     assert(p != NULL && p->tf != NULL, "syscall: missing process context");
+     uint64 sys_num = p->tf->a7;
++    if (sys_num == 11) { p->tf->a0 = audit_lock_call(); return; }
+     if (sys_num > SYS_MAX_NUM || syscalls[sys_num] == NULL)
+     {
+         p->tf->a0 = (uint64)-1;
+--- /dev/null
++++ b/src/kernel/audit_lock_probe.c
+@@ -0,0 +1,20 @@
++#include "arch/mod.h"
++#include "lib/mod.h"
++#include "lock/mod.h"
++#include "trap/method.h"
++static sleeplock_t probe_lock;
++static int active;
++extern int audit_lock_sleeps;
++void audit_lock_init(void) { sleeplock_init(&probe_lock,"audit"); }
++uint64 audit_lock_call(void) {
++    if (sleeplock_holding(&probe_lock)) return (uint64)-1;
++    sleeplock_acquire(&probe_lock);
++    if (!sleeplock_holding(&probe_lock) || active) panic("audit sleeplock owner");
++    active = 1;
++    timer_wait(5);
++    if (!sleeplock_holding(&probe_lock) || active != 1) panic("audit sleeplock overlap");
++    active = 0;
++    sleeplock_release(&probe_lock);
++    printf("[lock-probe] waits=%d\n", __atomic_load_n(&audit_lock_sleeps,__ATOMIC_RELAXED));
++    return 0;
++}

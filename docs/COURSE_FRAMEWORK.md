@@ -19,7 +19,11 @@
 
 Lab 2 已按课程目录和接口衔接 Lab 1 的打印与锁，填写 OpenSBI 启动、物理页分配和内核页表。QEMU 双核启动、分配与映射等检查和限制见 [Lab 2 验证记录](../lab2/docs/evidence/course-2026-11-04/README.md)。
 
-Lab 3 在老师框架中继承前阶段基础，填写时钟、外部中断分发、PLIC 与 UART 接收，修正课程模板中串口中断位定义和 trap 入口遗漏恢复 `tp` 的问题。双核时钟、代表性寄存器及串口交互检查见 [Lab 3 验证记录](../lab3/docs/evidence/course-2026-11-04/README.md)。目前测试覆盖有限，不能据此声称课程全部验收完成。Lab 4～6 的 `course/` 仍是原始框架，尚未把前阶段答案衔接进去。
+Lab 3 在老师框架中继承前阶段基础，填写时钟、外部中断分发、PLIC 与 UART 接收，修正课程模板中串口中断位定义和 trap 入口遗漏恢复 `tp` 的问题。双核时钟、代表性寄存器及串口交互检查见 [Lab 3 验证记录](../lab3/docs/evidence/course-2026-11-04/README.md)。目前测试覆盖有限，不能据此声称课程全部验收完成。
+
+Lab 4～6 已在各自老师框架内填写并进行 QEMU 检查。Lab 4 覆盖用户态进入、异常隔离、权限和分配失败回滚，详见 [Lab 4 记录](../lab4/docs/evidence/course-2026-11-05/README.md)。Lab 5 覆盖用户内存、`brk`、`mmap`、栈增长和系统调用，详见 [Lab 5 记录](../lab5/docs/evidence/course-2026-11-05/README.md)。Lab 6 覆盖 `fork`、等待、调度、时钟抢占和锁，详见 [Lab 6 记录](../lab6/docs/evidence/course-2026-11-05/README.md)。测试只证明记录的场景；实板、全面压力测试和部分学生规格说明仍未完成。
+
+Lab 4 的 `spec/modules/process.yaml` 和 `usertrap.yaml` 已由 Agent 起草；Lab 5、6 仍有学生需要填写和理解的规格占位内容，不能把它们记为本人完成。Lab 6 课程 `spec/design.yaml` 关于时钟计数核写的是 hart 0，而 `spec/modules/trap.yaml` 和增量规格写启动核；当前实现使用启动核，课程原件内部存在此差异，后续应向老师核实。
 
 老师 Lab 1 指导书也要求学生在上阶段基础上建立实验分支。当前项目主要按目录保存实验；Git 分支尚未按老师要求重新整理，不能说已满足这一项。后续应结合课程要求整理连续历史，避免将新建立的分支冒充过去的提交记录。
 

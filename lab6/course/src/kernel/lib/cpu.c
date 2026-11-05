@@ -4,17 +4,20 @@ static cpu_t cpus[NCPU];
 
 cpu_t *mycpu(void)
 {
-    int hartid = r_tp();
-    return &cpus[hartid];
+    return &cpus[mycpuid()];
 }
 
 int mycpuid(void)
 {
-    int hartid = r_tp();
-    return hartid;
+    uint64 hartid = r_tp();
+    assert(hartid < NCPU, "mycpuid: invalid hart");
+    return (int)hartid;
 }
 proc_t *myproc(void)
 {
-    int hartid = r_tp();
-    return cpus[hartid].proc;
+    // 获取当前进程期间禁止抢占，确保 hart 和进程指针对应。
+    push_off();
+    proc_t *p = mycpu()->proc;
+    pop_off();
+    return p;
 }

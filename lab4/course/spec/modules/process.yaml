@@ -33,19 +33,21 @@ functions:
 
   pgtbl_t proc_pgtbl_init(uint64 trapframe):
     pre:
-    - 
+    - 物理页分配器已初始化；trapframe 是调用方拥有的页对齐内核页。
     effects:
-    - 
+    - 申请页表根并映射共享 trampoline 与借用的 trapframe，均不设置 PTE_U。
     post:
-    - 
+    - 成功返回新的根页表；资源不足返回 NULL，回收本次申请的页表页且不释放借用页。
 
   void proc_make_first(void):
     pre:
-    - 
+    - 内核页表和中断入口已初始化，调用者是 hart 0，KSTACK(0) 已映射。
     effects:
-    - 
+    - 创建唯一进程的 trapframe、用户页表、代码页和栈页；填好用户 PC、栈与首次 context。
+    - 全部资源就绪后发布 cpu.proc，通过 swtch 进入 trap_user_return。
     post:
-    - 
+    - 用户执行期间不返回；发生用户异常时返回调用者并回收该进程独占资源。
+    - 必要资源分配失败时先回收已申请资源，再报告内核启动失败。
 
   void swtch(context_t *old, context_t *new):
     pre:

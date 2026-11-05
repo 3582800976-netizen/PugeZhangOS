@@ -1,0 +1,8 @@
+mkdir -p target/kernel
+mkdir -p target/kernel/arch
+mkdir -p target/kernel/boot
+mkdir -p target/kernel/lock
+mkdir -p target/kernel/lib
+mkdir -p target/kernel/mem
+mkdir -p target/kernel/trap
+qemu-system-riscv64   -machine virt -bios default -kernel target/kernel/kernel-qemu.elf   -m 130M -smp 2 -nographic  

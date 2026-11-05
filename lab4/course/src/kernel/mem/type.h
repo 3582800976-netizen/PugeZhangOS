@@ -115,6 +115,7 @@ typedef pte_t *pgtbl_t;
 #define PTE_G (1 << 5) // global
 #define PTE_A (1 << 6) // accessed
 #define PTE_D (1 << 7) // dirty
+#define PTE_MACHINE 0 // QEMU 不需要额外平台位
 
 // 检查一个PTE是否属于pgtbl
 #define PTE_CHECK(pte) (((pte) & (PTE_R | PTE_W | PTE_X)) == 0)
@@ -124,3 +125,8 @@ typedef pte_t *pgtbl_t;
 
 // 定义一个非常大的VA, 正常来说所有VA不得大于它
 #define VA_MAX (1ul << 38)
+
+#define TRAMPOLINE (VA_MAX - PGSIZE)
+#define TRAPFRAME (TRAMPOLINE - PGSIZE)
+#define KSTACK(i) (TRAPFRAME - ((i) + 1) * 2 * PGSIZE)
+#define USER_BASE PGSIZE
