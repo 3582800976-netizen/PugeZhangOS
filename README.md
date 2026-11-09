@@ -1,5 +1,7 @@
 # PugeZhangOS：操作系统课程实验
 
+**完整框架总文档：[项目完整框架与当前进度](docs/SYSTEM_FRAMEWORK.md)。**
+
 这是 ECNU OSLab 课程项目。我们在老师提供的 RISC-V 实验框架中逐步填写内核，借鉴 xv6 的原理，并用 QEMU 检查实际行为。课程原件见 [Gitee 课程仓库](https://gitee.com/christinaaa/ecnu-oslab-2026-task)，各阶段框架来源见[课程框架记录](docs/COURSE_FRAMEWORK.md)。
 
 **目前的状态：** Lab 1～6 的 `course/` 已填写，并有对应的 QEMU 测试记录；这不代表所有课程验收项已经完成。VisionFive 2 的平台常量仍有待填写，尚未运行我们的内核；课程要求的实验继承分支、部分规格说明和少量接口仍需整理。代码和测试有 Agent 参与，需要如实说明。
@@ -56,6 +58,49 @@ PugeZhang/
 | Lab 6 | 创建进程、调度、锁、等待和退出 | [框架](lab6/course/README.md) · [测试记录](lab6/docs/evidence/course-2026-11-05/README.md) |
 
 **看代码时先进入对应的 `labN/course/`。** 每个 `course/` 是老师该实验分支的独立快照，运行时不会自动引用其他 Lab 的源码。此前我们自己做的 Lab 1～5 保留在 `labN/` 其他位置，用于学习对照；它们的 `pgos>` 和测试结果不等同于课程框架的结果。
+
+## 每个 Lab 的框架和进度
+
+下面的“通过”指对应记录中的具体 QEMU 场景通过，不代表课程全部验收或开发板验证通过。每个实验都是一个独立阶段；可以把它们理解为系统逐步长大的六张照片。
+
+### Lab 1：先让内核运行起来
+
+CPU 启动后，需要有入口、栈，以及能看见结果的输出。主要代码是 [boot/entry.S](lab1/course/src/kernel/boot/entry.S)、[boot/start.c](lab1/course/src/kernel/boot/start.c)、[lib/print.c](lab1/course/src/kernel/lib/print.c) 和 [lock/spinlock.c](lab1/course/src/kernel/lock/spinlock.c)；[main.c](lab1/course/src/kernel/main.c) 安排初始化。双核打印和锁的检查已有记录。
+
+### Lab 2：给内核管理内存的能力
+
+在启动基础上增加 `mem/`：[pmem.c](lab2/course/src/kernel/mem/pmem.c) 管理物理内存页，[kvm.c](lab2/course/src/kernel/mem/kvm.c) 管理内核页表。可以把页表理解为“程序使用的地址如何对应实际内存、是否允许访问”的规则表。已检查分配、归还及部分映射；跨核动态页表修改同步等仍有局限，详见复测记录。
+
+### Lab 3：让内核响应发生的事情
+
+扩展 `trap/`：例如 [timer.c](lab3/course/src/kernel/trap/timer.c) 处理时钟，[plic.c](lab3/course/src/kernel/trap/plic.c) 处理外部中断控制器；串口代码在 [lib/uart.c](lab3/course/src/kernel/lib/uart.c)。已检查双核时钟和一组串口输入，尚未覆盖所有异常和长时间运行。
+
+### Lab 4：运行第一个用户程序
+
+新增 [proc/proc.c](lab4/course/src/kernel/proc/proc.c) 管理首个进程、[trap/trampoline.S](lab4/course/src/kernel/trap/trampoline.S) 协助用户态与内核态切换，[trap_user.c](lab4/course/src/kernel/trap/trap_user.c) 处理用户请求和异常；用户程序在 [src/user/initcode.c](lab4/course/src/user/initcode.c)。目前是首个用户进程，并非多进程调度。已测试进入用户态、访问保护和部分分配失败场景。
+
+### Lab 5：让用户程序申请和使用内存
+
+扩展 [mem/uvm.c](lab5/course/src/kernel/mem/uvm.c) 和 [mem/mmap.c](lab5/course/src/kernel/mem/mmap.c)，并增加 [syscall/](lab5/course/src/kernel/syscall/syscall.c) 分派用户请求。`brk` 管理堆边界，`mmap`/`munmap` 管理映射区，用户栈可按规则增长。已有用户复制、堆、映射、栈增长及代码页保护的测试记录。
+
+### Lab 6：让多个进程轮流运行
+
+[proc/proc.c](lab6/course/src/kernel/proc/proc.c) 负责进程创建、等待、退出和调度；[proc/swtch.S](lab6/course/src/kernel/proc/swtch.S) 切换执行现场；[lock/sleeplock.c](lab6/course/src/kernel/lock/sleeplock.c) 提供睡眠锁。可以把调度器理解为“决定哪个进程接下来运行”的内核部分。已记录单核、双核运行以及 `fork`、`wait`、睡眠和抢占等 17 个 QEMU 场景；这些测试不能覆盖所有并发情况。
+
+### 代码怎么一层层连接
+
+Lab 6 从启动到用户程序运行的主要路线是：
+
+```text
+QEMU → OpenSBI → boot/entry.S → boot/start.c → main.c 初始化
+     → proc/ 创建进程并进入调度 → src/user/initcode.c 运行
+     → 遇到 ecall 或中断时进入 trap/ → syscall/ 或相应处理函数
+     → 必要时调用 mem/、proc/ 或其他模块 → 返回用户程序
+```
+
+各模块的 `type.h` 主要放类型和常量，`method.h` 声明接口，`.c` 和 `.S` 放实现。不是每个阶段都具有上述全部模块：Lab 4 的最小用户调用直接在用户陷入处理路径中处理，独立 `syscall/` 目录从 Lab 5 开始出现。
+
+目前离完整课程交付还差：VisionFive 2 的平台适配和实板启动、课程要求的实验继承分支、部分个人规格说明与更全面的测试。Lab 5、6 的 `%f` 输出已测试，但课程单独列出的 `printfloat(double, int)` 接口尚未提供。具体测试证据和限制以上表链接为准。
 
 ## 运行老师的框架
 
