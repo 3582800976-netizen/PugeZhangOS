@@ -1,0 +1,3 @@
+patching file src/kernel/main.c
+patching file src/kernel/mem/pmem.c
+patching file src/kernel/test.c

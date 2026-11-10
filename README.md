@@ -117,6 +117,8 @@ Lab 4 的用户页按 RXU 映射；Lab 5、6 目前将用户程序代码放在�
 
 ## 后续工作和硬件
 
+通用内存复制的回归检查可运行 `python3 scripts/check-course-memmove.py`，它直接编译 Lab 2～6 的真实 `utils.c`。重叠复制修复及宿主、RISC-V QEMU 验证见 [2026-11-10 维护记录](docs/evidence/memmove-2026-11-10/README.md)。
+
 - 继续对照老师规格与 PPT 逐项验收，补充压力测试和规格解释；QEMU 的有限测试不能证明所有情况正确。
 - 按课程要求整理实验继承分支；当前目录分阶段不等于已经满足分支要求。
 - VisionFive 2 需要单独适配启动、内存和设备，并记录真实启动结果。此前写入 microSD 的 Ubuntu 镜像用于开发板环境，**不是我们的内核**。

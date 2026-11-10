@@ -259,3 +259,5 @@ make -C lab6/course run
 每行对应一个独立实验，运行时选择其中一行。Lab 6 可附加 `CPUNUM=1` 或 `CPUNUM=2`。退出 QEMU：按住 `Ctrl` 再按 `A`，全部松开，然后按 `X`。实际运行结果与检查脚本见上表中的各阶段记录。
 
 Lab 5、6 的用户程序链接布局可运行 `python3 scripts/check-course-user-layout.py` 检查。脚本会自动寻找支持的 RISC-V assembler 和 linker，也可以通过 `TOOLPREFIX` 指定前缀；检查记录见[工具链维护记录](evidence/toolchain-2026-11-09/README.md)。
+
+Lab 2～6 的内存复制函数可运行 `python3 scripts/check-course-memmove.py` 检查；该检查直接编译课程真实 `utils.c`，覆盖重叠、自拷贝、零长度和范围外保护。RISC-V QEMU 检查入口及修复前后结果见 [memmove 维护记录](evidence/memmove-2026-11-10/README.md)。

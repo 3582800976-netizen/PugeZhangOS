@@ -1,0 +1,4 @@
+patching file src/kernel/main.c
+patching file src/kernel/trap/trap_kernel.c
+patching file src/kernel/probe.c
+patching file src/kernel/register_probe.S

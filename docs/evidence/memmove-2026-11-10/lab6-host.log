@@ -1,0 +1,6 @@
+kvm: PASS
+mmap-nodes: PASS
+physical-pages: PASS
+sleeplock: PASS
+uvm-copy: PASS
+uvm-regions: PASS

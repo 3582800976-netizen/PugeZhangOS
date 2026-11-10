@@ -1,0 +1,11 @@
+Lab 2: checking actual lib/utils.c
+FAIL src=0 dst=1 n=2 byte=10 actual=40 expected=77
+Lab 3: checking actual lib/utils.c
+FAIL src=0 dst=1 n=2 byte=10 actual=40 expected=77
+Lab 4: checking actual lib/utils.c
+FAIL src=0 dst=1 n=2 byte=10 actual=40 expected=77
+Lab 5: checking actual lib/utils.c
+FAIL src=0 dst=1 n=2 byte=10 actual=40 expected=77
+Lab 6: checking actual lib/utils.c
+FAIL src=0 dst=1 n=2 byte=10 actual=40 expected=77
+course memmove summary: failures=5

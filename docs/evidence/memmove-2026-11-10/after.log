@@ -1,0 +1,11 @@
+Lab 2: checking actual lib/utils.c
+memmove: PASS (187334 snapshot cases, null/zero-length and separate objects)
+Lab 3: checking actual lib/utils.c
+memmove: PASS (187334 snapshot cases, null/zero-length and separate objects)
+Lab 4: checking actual lib/utils.c
+memmove: PASS (187334 snapshot cases, null/zero-length and separate objects)
+Lab 5: checking actual lib/utils.c
+memmove: PASS (187334 snapshot cases, null/zero-length and separate objects)
+Lab 6: checking actual lib/utils.c
+memmove: PASS (187334 snapshot cases, null/zero-length and separate objects)
+course memmove summary: failures=0

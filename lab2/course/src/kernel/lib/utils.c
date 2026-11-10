@@ -8,16 +8,23 @@ void memset(void *begin, uint8 data, uint32 n)
         list[i] = data;
 }
 
-// 从src向dst拷贝n个字节的数据
+// 从src向dst拷贝n个字节，允许源和目标重叠。
 void memmove(void *dst, const void *src, uint32 n)
 {
-    char *d = dst;
-    const char *s = src;
-    while (n--)
-    {
-        *d = *s;
-        d++;
-        s++;
+    uint8 *d = dst;
+    const uint8 *s = src;
+    if (n == 0 || d == s)
+        return;
+
+    // 使用内核地址类型比较，避免对不同对象的指针作关系比较。
+    if ((uint64)d > (uint64)s) {
+        d += n;
+        s += n;
+        while (n--)
+            *--d = *--s;
+    } else {
+        while (n--)
+            *d++ = *s++;
     }
 }
 
